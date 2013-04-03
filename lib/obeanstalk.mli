@@ -18,7 +18,7 @@ module Tube : sig
   val ignore : conn -> tube:string -> unit Or_error.t
   (** producers *)
   val use : conn -> tube:string -> unit Or_error.t
-  val used : conn -> string Or_error.t
+  val using : conn -> string Or_error.t
 end
 
 module type Serializable = sig
