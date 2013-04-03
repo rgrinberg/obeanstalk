@@ -28,32 +28,30 @@ module type Serializable = sig
   val size : t -> int
 end
 
-module Job : sig
+module type Job_intf = sig
+  module S : Serializable
   type t
-  include Serializable with type t := t
   val id : t -> int
-  val data : t -> string
+  val data : t -> S.t
 end
 
-module Worker : sig
+module Worker : functor (S : Serializable) -> sig
+  module Job : Job_intf
   open Deferred (* for the correct result type *)
   type t = Job.t
   (** reserving jobs *)
   val reserve : conn -> ?timeout:int -> t Or_error.t
-
   (** job operations *)
   val put : conn -> ?delay:int -> priority:int -> ttr:int -> unit Or_error.t
   val bury : conn -> id:int -> priority:int -> unit Or_error.t
   val delete : conn -> id:int -> unit Or_error.t
   val touch : conn -> id:int -> unit Or_error.t
   val release : conn -> id:int -> priority:int -> unit Or_error.t
-
   (** peeks *)
   val peek : conn -> id:int -> t Or_error.t
   val peek_ready : conn -> t Or_error.t
   val peek_delayed : conn -> t Or_error.t
   val peek_buried : conn -> t Or_error.t
-
   (** kicks *)
   val kick_bound : conn -> bound:int -> [ `Kicked of int ] Or_error.t
   val kick_job : conn -> id:int -> unit Or_error.t
