@@ -6,7 +6,7 @@ let wrap x = x ^ "\r\n"
 let unwrap x = 
   let len = String.length x in
   assert (x.[len-1] = '\n' && x.[len-2] = '\r');
-  String.sub ~pos:0 ~len:(len-2)
+  String.sub ~pos:0 ~len:(len-2) x
 
 (* strip \r\n from the end of the line *)
 let unwrap_smart x = 
@@ -18,7 +18,7 @@ let unwrap_smart x =
 
 module Command = struct
   let sp = Printf.sprintf
-  let use_tube ~name = (sp "use %s" name) |> wrap
+  let use_tube ~tube = (sp "use %s" tube) |> wrap
   let put ?(delay=0) ~priority ~ttr ~bytes =
     (sp "put %d %d %d %d" priority delay ttr bytes) |> wrap
   let reserve = wrap "reserve"
@@ -29,7 +29,7 @@ module Command = struct
   let bury ~id ~priority = (sp "bury %d %d" id priority) |> wrap
   let touch ~id = (sp "touch %d" id) |> wrap
   let watch ~tube = (sp "watch %d" tube) |> wrap
-  let ignore ~tube = (sp "ignore %s" tube) |> wrap
+  let ignore_tube ~tube = (sp "ignore %s" tube) |> wrap
   let peek ~id = (sp "peek %d" id) |> wrap
   let peek_ready = "peek-ready" |> wrap
   let peek_delayed = "peek-delayed" |> wrap
@@ -93,7 +93,7 @@ module Response = struct
   let watch = single_parse ~prefix:"WATCHING" ~re:"\\d+"
       ~success_protect:(fun s -> `Watching (Int.of_string s))
 
-  let ignore = watch (* same response in both cases *)
+  let ignore_tube = watch (* same response in both cases *)
 
   let peek_any = tuple_parse ~prefix:"FOUND"
       ~first:("\\d+", (fun s -> `Id(Int.of_string s)))
@@ -108,4 +108,7 @@ module Response = struct
   let list_tubes_any = stats_tube
 
   let pause_tube = fail_if_unequal "PAUSED"
+
+  let try_with t ~resp = Or_error.try_with (fun () -> (t resp))
+  let try_with_ignore t ~resp = Or_error.try_with (fun () -> ignore (t resp))
 end

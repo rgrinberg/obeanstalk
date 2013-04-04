@@ -15,7 +15,7 @@ module Tube : sig
   (** consumers *)
   val watched : conn -> string list Or_error.t
   val watch : conn -> tube:string -> [`Watching of int] Or_error.t
-  val ignore : conn -> tube:string -> unit Or_error.t
+  val ignore_tube : conn -> tube:string -> unit Or_error.t
   (** producers *)
   val use : conn -> tube:string -> unit Or_error.t
   val using : conn -> string Or_error.t
