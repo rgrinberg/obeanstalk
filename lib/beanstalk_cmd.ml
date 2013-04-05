@@ -28,7 +28,7 @@ module Command = struct
     (sp "release %d %d %d" id priority delay) |> wrap
   let bury ~id ~priority = (sp "bury %d %d" id priority) |> wrap
   let touch ~id = (sp "touch %d" id) |> wrap
-  let watch ~tube = (sp "watch %d" tube) |> wrap
+  let watch ~tube = (sp "watch %s" tube) |> wrap
   let ignore_tube ~tube = (sp "ignore %s" tube) |> wrap
   let peek ~id = (sp "peek %d" id) |> wrap
   let peek_ready = "peek-ready" |> wrap
@@ -81,7 +81,7 @@ module Response = struct
   let bury : with_id = job_parse ~prefix:"BURIED"
   let delete : with_id = job_parse ~prefix:"DELETED"
 
-  let use = single_parse ~prefix:"USING" ~re:".+"
+  let using = single_parse ~prefix:"USING" ~re:".+"
       ~success_protect:(fun s -> `Tube s)
 
   let fail_if_unequal eq s = if s = eq then `Ok else raise Parse_failed
