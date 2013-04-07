@@ -47,7 +47,7 @@ let test_split () =
   assert_equal v " 123" ~printer:(fun x -> x)
 
 let test_yaml () = 
-  let yaml = parse_yaml sample_yaml in
+  let yaml = parse_yaml_dict sample_yaml in
   assert_bool "more than 10" ((List.length yaml) > 10);
   assert_equal (List.Assoc.find_exn yaml "pid") "13297";
   assert_equal (List.Assoc.find_exn yaml "cmd-pause-tube") "0"

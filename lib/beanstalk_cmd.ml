@@ -9,7 +9,7 @@ let split s ~on =
 
 (* just enough to parse whatever we get from obeanstalk *)
 (* TODO : this function is still untested *)
-let parse_yaml s = 
+let parse_yaml_dict s = 
   match String.split s ~on:'\n' with
   | [] -> [] (* first element should be header *)
   | _::lines -> (* I assume first line is the header *)
