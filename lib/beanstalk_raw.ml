@@ -96,12 +96,12 @@ let request_get_job : conn -> cmd:string -> _  =
     let open Deferred.Or_error.Monad_infix in
     (request cn ~cmd) >>= fun resp ->
     match resp_handler resp with
-    | `Error -> assert false (* TODO *)
-    | `Ok read ->
+    | `Error -> failwith "TODO"
+    | `Ok (`Id i, `Bytes len) ->
       let open Deferred.Monad_infix in
-      (read_len cn ~len:(read#bytes)) >>= fun job -> 
+      (read_len cn ~len) >>= fun job -> 
       object
         method job = job
-        method id = read#id
+        method id = i
       end |> Deferred.Or_error.return
 
