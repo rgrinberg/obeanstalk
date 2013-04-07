@@ -33,6 +33,7 @@ module type Job_intf = sig
   type t
   val id : t -> int
   val data : t -> S.t
+  val create : data:S.t -> id:int -> t
 end
 
 module Worker : functor (S : Serializable) -> sig
@@ -40,9 +41,12 @@ module Worker : functor (S : Serializable) -> sig
   open Deferred (* for the correct result type *)
   type t = Job.t
   (** reserving jobs *)
-  val reserve : conn -> ?timeout:int -> t Or_error.t
+  val reserve : ?timeout:int -> conn -> t Or_error.t
   (** job operations *)
-  val put : conn -> ?delay:int -> priority:int -> ttr:int -> unit Or_error.t
+
+  val put : conn -> ?delay:int -> priority:int -> ttr:int -> 
+                    job:Job.S.t -> t Or_error.t
+
   val bury : conn -> id:int -> priority:int -> unit Or_error.t
   val delete : conn -> id:int -> unit Or_error.t
   val touch : conn -> id:int -> unit Or_error.t
