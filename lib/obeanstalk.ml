@@ -112,8 +112,9 @@ module Worker (S : Serializable) = struct
 
   let peek_ready cn = peek_get_job cn ~peek:(Command.peek_ready)
 
-  let peek_delayed _ = failwith "TODO" 
-  let peek_buried _  = failwith "TODO" 
+  let peek_delayed cn = peek_get_job cn ~peek:(Command.peek_delayed)
+
+  let peek_buried cn = peek_get_job cn ~peek:(Command.peek_buried)
 
   let kick_bound cn ~bound = request_process cn
       ~cmd:(Command.kick ~bound)
