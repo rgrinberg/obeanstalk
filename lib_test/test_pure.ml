@@ -2,8 +2,7 @@ open OUnit
 open Core.Std
 open Beanstalk_cmd
 
-let sample_yaml = "
----
+let sample_yaml = "---
 current-jobs-urgent: 0
 current-jobs-ready: 0
 current-jobs-reserved: 0
@@ -40,16 +39,24 @@ current-producers: 0
 current-workers: 0
 current-waiting: 0
 total-connections: 1
-pid: 13297
-"
+pid: 13297"
+
+let test_split () =
+  let (k,v) = split "test: 123" ~on:':' in
+  assert_equal k "test" ~printer:(fun x -> x);
+  assert_equal v " 123" ~printer:(fun x -> x)
 
 let test_yaml () = 
-  assert_bool "TODO" true
+  let yaml = parse_yaml sample_yaml in
+  assert_bool "more than 10" ((List.length yaml) > 10);
+  assert_equal (List.Assoc.find_exn yaml "pid") "13297";
+  assert_equal (List.Assoc.find_exn yaml "cmd-pause-tube") "0"
 
 let test_fixtures =
   "test yaml parsing" >:::
     [
-      "beanstalkd is running" >:: test_yaml;
+      "test split" >:: test_split;
+      "sample yaml" >:: test_yaml;
     ]
 
 let _ = run_test_tt ~verbose:true test_fixtures
