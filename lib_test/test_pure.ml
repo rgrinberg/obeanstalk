@@ -41,22 +41,32 @@ current-waiting: 0
 total-connections: 1
 pid: 13297"
 
+let sample_yaml2 = "---
+- default"
+
+let id x = x
+
 let test_split () =
   let (k,v) = split "test: 123" ~on:':' in
-  assert_equal k "test" ~printer:(fun x -> x);
-  assert_equal v " 123" ~printer:(fun x -> x)
+  assert_equal k "test" ~printer:id;
+  assert_equal v " 123" ~printer:id
 
-let test_yaml () = 
+let test_yaml_dict () = 
   let yaml = parse_yaml_dict sample_yaml in
   assert_bool "more than 10" ((List.length yaml) > 10);
   assert_equal (List.Assoc.find_exn yaml "pid") "13297";
   assert_equal (List.Assoc.find_exn yaml "cmd-pause-tube") "0"
 
+let test_yaml_list () = 
+  let yaml = parse_yaml_list sample_yaml2 in
+  assert_equal (List.hd_exn yaml) "default" ~printer:id
+
 let test_fixtures =
   "test yaml parsing" >:::
     [
       "test split" >:: test_split;
-      "sample yaml" >:: test_yaml;
+      "sample yaml dict" >:: test_yaml_dict;
+      "sample yaml list" >:: test_yaml_list
     ]
 
 let _ = run_test_tt ~verbose:true test_fixtures
