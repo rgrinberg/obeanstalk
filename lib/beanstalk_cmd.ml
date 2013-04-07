@@ -18,6 +18,17 @@ let parse_yaml_dict s =
       (* TODO : fix this "inelegant" error handling *)
       with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
 
+let parse_yaml_list s = 
+  match String. split s ~on:'\n' with
+  | [] -> []
+  | _::lines ->
+    lines |> List.filter_map ~f:(fun l ->
+      try begin 
+        assert (l.[0] = '-');
+        Some(l |> String.sub ~pos:1 ~len:(String.length l - 1) |> String.strip)
+      end
+      with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
+
 let wrap x = x ^ "\r\n"
 
 let unwrap x = 
