@@ -37,14 +37,22 @@ end
 
 module Tube = struct
 
-  let all _ = failwith "TODO"
-  let stats _ ~tube = failwith "TODO"
+  (* list-tubes *)
+  let all cn = request_get_yaml_list cn
+    ~cmd:(Command.list_tubes)
+    ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
+
+  let stats cn ~tube = request_get_yaml_dict cn 
+    ~cmd:(Command.stats_tube ~name:tube) 
+    ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
 
   let pause cn ~tube ~delay = request_process_ignore cn
       ~cmd:(Command.pause_tube ~tube ~delay)
       ~process:(Response.pause_tube)
 
-  let watched _ = failwith "TODO"
+  let watched cn = 
+    request_get_yaml_list cn ~cmd:(Command.list_tubes_watched)
+      ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
 
   let watch cn ~tube = request_process cn
       ~cmd:(Command.watch ~tube)
