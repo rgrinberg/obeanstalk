@@ -1,0 +1,175 @@
+open Core.Std
+open Async.Std
+
+open Beanstalk_exc
+open Beanstalk_cmd
+open Beanstalk_raw
+
+type conn = Beanstalk_raw.conn
+
+type conf = (string, string) List.Assoc.t
+
+(* just enough to parse whatever we get from obeanstalk *)
+(* TODO : this function is still untested *)
+let parse_yaml s = 
+  let split s ~on = 
+    let open String in
+    let i = String.index_exn s on in
+    let len = (String.length s) - i in
+    (sub s ~pos:0 ~len:i, sub s ~pos:(i+1) ~len)
+  in 
+  match String.split s ~on:'\n' with
+  | [] -> [] (* first element should be header *)
+  | _::lines -> (* I assume first line is the header? *)
+    lines |> List.filter_map ~f:(fun l -> 
+      try let (k,v) = split ~on:':' l in Some (k, String.strip v)
+      (* TODO : fix this "inelegant" error handling *)
+      with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
+
+let sprintf = Printf.sprintf
+
+let translate_error _ = failwith "TODO"
+
+module Beanstalk = struct
+  (* Primitive communication with beanstalkd. This module is only responsible
+   * for input/output with beanstalkd + error translation *)
+  type t
+  let send_batch t ~cmds = 
+    Deferred.Or_error.return ""
+  let send t ~cmd = 
+    Deferred.Or_error.return ""
+
+  let simple_cmd bs ~cmd ~expected =
+    let open Deferred.Or_error.Monad_infix in
+    send bs ~cmd >>| (function
+      | resp when expected = resp -> Ok ()
+      | x -> x |> translate_error)
+end
+
+module Cmd = struct
+  let two_param_cmd s = 
+    let open Result in
+    match String.split s ~on:' ' with
+    | x::y::[] -> Ok (x, y)
+    | _ -> Error (Error.of_lazy (lazy ("bad command: " ^ s)))
+
+  let cmd_id s = 
+    let open Or_error.Monad_infix in
+    (two_param_cmd s) >>= (fun (resp, id) ->
+      Or_error.try_with (fun () -> (resp, Int.of_string id)))
+end
+module BS = Beanstalk
+
+module type Serializable = sig
+  type t
+  val serialize : t -> string
+  val deserialize : string -> t
+  val size : t -> int
+end
+
+module type Job_intf = sig
+  module S : Serializable
+  type t
+  val id : t -> int
+  val data : t -> S.t
+  val create : data:S.t -> id:int -> t
+end
+
+module MakeJob (S : Serializable) : Job_intf = struct
+  module BS = Beanstalk
+  module S = S
+  type t = {
+    id : int;
+    data : S.t;
+  }
+  let id {id;_} = id
+  let data {data;_} = data
+  let create ~data ~id = {data ; id}
+end
+
+module Tube = struct
+
+  let all _ = failwith "TODO"
+  let stats _ ~tube = failwith "TODO"
+
+  let pause cn ~tube ~delay = request_process_ignore cn
+      ~cmd:(Command.pause_tube ~tube ~delay)
+      ~process:(Response.pause_tube)
+
+  let watched _ = failwith "TODO"
+
+  let watch cn ~tube = request_process cn
+      ~cmd:(Command.watch ~tube)
+      ~process:(Response.watch)
+
+  let ignore_tube cn ~tube = request_process_ignore cn 
+      ~cmd:(Command.ignore_tube ~tube)
+      ~process:(Response.ignore_tube)
+
+  let use cn ~tube = request_process_ignore cn
+      ~cmd:(Command.use_tube ~tube)
+      ~process:(Response.using)
+
+  let using cn = request_process cn 
+      ~cmd:(Command.list_tube_used)
+      ~process:(Response.using)
+
+end  
+
+module Worker (S : Serializable) = struct
+  module Job = MakeJob(S)
+  type t = Job.t
+
+  let reserve ?timeout cn = 
+    let cmd = match timeout with
+      | None -> Command.reserve
+      | Some x -> Command.reserve_timeout ~timeout:x
+    in 
+    let open Deferred.Or_error.Monad_infix in 
+    (request_get_job cn ~cmd
+       ~resp_handler:(fun r -> `Ok (Response.reserve r))) >>|
+    (fun job -> Job.create ~data:(Job.S.deserialize job#job) ~id:(job#id))
+
+  let put cn ?delay ~priority ~ttr ~job = 
+    let data = Job.S.serialize job in
+    let bytes = Job.S.size job in
+    let open Deferred.Or_error.Monad_infix in 
+    (request_with_job cn ~cmd:(Command.put ?delay ~priority ~ttr ~bytes)
+       ~data ~process:(Response.put)) >>| 
+    (fun (`Id id) -> Job.create ~id ~data:job)
+
+  let bury cn ~id ~priority = request_process_ignore cn
+      ~cmd:(Command.bury ~id ~priority)
+      ~process:(Response.bury)
+
+  let delete cn ~id = request_process_ignore cn
+      ~cmd:(Command.delete ~id)
+      ~process:(Response.delete)
+
+  let touch cn ~id =  request_process_ignore cn
+      ~cmd:(Command.touch ~id)
+      ~process:(Response.touch)
+
+  let release cn ~id ~priority ~delay = request_process_ignore cn
+      ~cmd:(Command.release ~id ~priority ~delay)
+      ~process:(Response.release)
+
+  let peek _ ~id = failwith "TODO" 
+  let peek_ready _ = failwith "TODO" 
+  let peek_delayed _ = failwith "TODO" 
+  let peek_buried _  = failwith "TODO" 
+
+  let kick_bound cn ~bound = request_process cn
+      ~cmd:(Command.kick ~bound)
+      ~process:(Response.kick)
+
+  let kick_job cn ~id = request_process_ignore cn
+      ~cmd:(Command.kick_job ~id)
+      ~process:(Response.kick_job)
+
+  let stats _ ~id = failwith "TODO"
+end
+
+let connect ?(port=default_port) ~host = 
+  let where = Tcp.to_host_and_port host port in
+  Tcp.connect where >>| (fun (_,reader, writer) -> (BS (reader, writer)))
