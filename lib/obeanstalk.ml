@@ -101,8 +101,17 @@ module Worker (S : Serializable) = struct
       ~cmd:(Command.release ~id ~priority ~delay)
       ~process:(Response.release)
 
-  let peek _ ~id = failwith "TODO" 
-  let peek_ready _ = failwith "TODO" 
+
+  let peek_get_job cn ~peek =
+    let open Deferred.Or_error.Monad_infix in
+    (request_get_job cn ~cmd:peek
+       ~resp_handler:(fun r -> `Ok (Response.peek_any r)))
+    >>| (fun job -> Job.create ~data:(Job.S.deserialize job#job) ~id:(job#id))
+
+  let peek cn ~id = peek_get_job cn ~peek:(Command.peek ~id)
+
+  let peek_ready cn = peek_get_job cn ~peek:(Command.peek_ready)
+
   let peek_delayed _ = failwith "TODO" 
   let peek_buried _  = failwith "TODO" 
 
