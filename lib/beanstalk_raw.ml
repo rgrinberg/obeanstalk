@@ -101,9 +101,13 @@ let request_with_len : conn -> cmd:string -> _ =
       (* TODO : Clean this up *)
       (read_len cn ~len) >>= (fun job -> job |> Deferred.Or_error.return)
 
-let request_get_yaml cn ~cmd ~resp_handler = 
+let request_get_yaml_dict cn ~cmd ~resp_handler = 
   let open Deferred.Or_error.Monad_infix in 
   (request_with_len cn ~cmd ~length:resp_handler) >>| parse_yaml_dict
+
+let request_get_yaml_list cn ~cmd ~resp_handler = 
+  let open Deferred.Or_error.Monad_infix in 
+  (request_with_len cn ~cmd ~length:resp_handler) >>| parse_yaml_list
 
 let request_get_job cn ~cmd ~resp_handler =
   (* TODO : this handling is a little big ugly. Fix later *)

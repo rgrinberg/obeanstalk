@@ -123,7 +123,7 @@ module Worker (S : Serializable) = struct
       ~cmd:(Command.kick_job ~id)
       ~process:(Response.kick_job)
 
-  let stats cn ~id = request_get_yaml cn ~cmd:(Command.stats_job ~id)
+  let stats cn ~id = request_get_yaml_dict cn ~cmd:(Command.stats_job ~id)
     ~resp_handler:(fun resp -> `Ok(Response.stats_tube resp) )
 end
 
