@@ -90,18 +90,25 @@ let request_with_job cn ~cmd ~data ~process =
   let f = (fun () -> send_with_data cn ~cmd ~data; recv cn) in
   request_with ~f ~process
 
-(* Command that returns a job from a response handler *)
-let request_get_job : conn -> cmd:string -> _  = 
-  fun cn ~cmd ~resp_handler ->
+let request_with_len : conn -> cmd:string -> _ = 
+  fun cn ~cmd ~length ->
     let open Deferred.Or_error.Monad_infix in
     (request cn ~cmd) >>= fun resp ->
-    match resp_handler resp with
+    match length resp with
     | `Error -> failwith "TODO"
-    | `Ok (`Id i, `Bytes len) ->
+    | `Ok (len) ->
       let open Deferred.Monad_infix in
-      (read_len cn ~len) >>= fun job -> 
-      object
-        method job = job
-        method id = i
-      end |> Deferred.Or_error.return
+      (* TODO : Clean this up *)
+      (read_len cn ~len) >>= fun job -> job |> Deferred.Or_error.return
 
+let request_get_job cn ~cmd ~resp_handler =
+  (* TODO : this handling is a little big ugly. Fix later *)
+  let id = ref None in
+  let length s = match resp_handler s with
+  | `Error -> failwith "TODO"
+  | `Ok (`Id i, `Bytes len) -> (id := (Some i); `Ok(len)) in
+  let open Deferred.Or_error.Monad_infix in 
+  (request_with_len cn ~cmd ~length) >>| (fun job -> object
+    method job = job
+    method id = Option.value_exn (!id)
+  end)
