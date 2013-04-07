@@ -28,38 +28,6 @@ let parse_yaml s =
 
 let sprintf = Printf.sprintf
 
-let translate_error _ = failwith "TODO"
-
-module Beanstalk = struct
-  (* Primitive communication with beanstalkd. This module is only responsible
-   * for input/output with beanstalkd + error translation *)
-  type t
-  let send_batch t ~cmds = 
-    Deferred.Or_error.return ""
-  let send t ~cmd = 
-    Deferred.Or_error.return ""
-
-  let simple_cmd bs ~cmd ~expected =
-    let open Deferred.Or_error.Monad_infix in
-    send bs ~cmd >>| (function
-      | resp when expected = resp -> Ok ()
-      | x -> x |> translate_error)
-end
-
-module Cmd = struct
-  let two_param_cmd s = 
-    let open Result in
-    match String.split s ~on:' ' with
-    | x::y::[] -> Ok (x, y)
-    | _ -> Error (Error.of_lazy (lazy ("bad command: " ^ s)))
-
-  let cmd_id s = 
-    let open Or_error.Monad_infix in
-    (two_param_cmd s) >>= (fun (resp, id) ->
-      Or_error.try_with (fun () -> (resp, Int.of_string id)))
-end
-module BS = Beanstalk
-
 module type Serializable = sig
   type t
   val serialize : t -> string
@@ -76,7 +44,6 @@ module type Job_intf = sig
 end
 
 module MakeJob (S : Serializable) : Job_intf = struct
-  module BS = Beanstalk
   module S = S
   type t = {
     id : int;
@@ -124,8 +91,7 @@ module Worker (S : Serializable) = struct
     let cmd = match timeout with
       | None -> Command.reserve
       | Some x -> Command.reserve_timeout ~timeout:x
-    in 
-    let open Deferred.Or_error.Monad_infix in 
+    in let open Deferred.Or_error.Monad_infix in 
     (request_get_job cn ~cmd
        ~resp_handler:(fun r -> `Ok (Response.reserve r))) >>|
     (fun job -> Job.create ~data:(Job.S.deserialize job#job) ~id:(job#id))
