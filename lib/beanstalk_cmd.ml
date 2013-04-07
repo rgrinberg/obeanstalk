@@ -105,7 +105,11 @@ module Response = struct
   let stats_tube = single_parse ~prefix:"OK" ~re:"\\d+"
       ~success_protect:(fun s -> `Bytes s) (* YAML *)
 
-  let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
+  let reserve s =
+    object
+      method id = failwith "TODO"
+      method bytes = failwith "TODO"
+    end
 
   let list_tubes_any = stats_tube
 
