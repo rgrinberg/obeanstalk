@@ -1,6 +1,23 @@
 open Core.Std
 open Async.Std
 
+(* just enough to parse whatever we get from obeanstalk *)
+(* TODO : this function is still untested *)
+let parse_yaml s = 
+  let split s ~on = 
+    let open String in
+    let i = String.index_exn s on in
+    let len = (String.length s) - i in
+    (sub s ~pos:0 ~len:i, sub s ~pos:(i+1) ~len)
+  in 
+  match String.split s ~on:'\n' with
+  | [] -> [] (* first element should be header *)
+  | _::lines -> (* I assume first line is the header? *)
+    lines |> List.filter_map ~f:(fun l -> 
+      try let (k,v) = split ~on:':' l in Some (k, String.strip v)
+      (* TODO : fix this "inelegant" error handling *)
+      with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
+
 let wrap x = x ^ "\r\n"
 
 let unwrap x = 
