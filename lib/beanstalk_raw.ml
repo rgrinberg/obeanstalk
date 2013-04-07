@@ -96,7 +96,7 @@ let request_with_len : conn -> cmd:string -> _ =
     (request cn ~cmd) >>= fun resp ->
     match length resp with
     | `Error -> failwith "TODO"
-    | `Ok (len) ->
+    | `Ok (`Bytes len) ->
       let open Deferred.Monad_infix in
       (* TODO : Clean this up *)
       (read_len cn ~len) >>= (fun job -> job |> Deferred.Or_error.return)
@@ -110,7 +110,7 @@ let request_get_job cn ~cmd ~resp_handler =
   let id = ref None in
   let length s = match resp_handler s with
   | `Error -> failwith "TODO"
-  | `Ok (`Id i, `Bytes len) -> (id := (Some i); `Ok(len)) in
+  | `Ok (`Id i, len) -> (id := (Some i); `Ok(len)) in
   let open Deferred.Or_error.Monad_infix in 
   (request_with_len cn ~cmd ~length) >>| (fun job -> object
     method job = job

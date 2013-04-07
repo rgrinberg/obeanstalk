@@ -101,7 +101,6 @@ module Worker (S : Serializable) = struct
       ~cmd:(Command.release ~id ~priority ~delay)
       ~process:(Response.release)
 
-
   let peek_get_job cn ~peek =
     let open Deferred.Or_error.Monad_infix in
     (request_get_job cn ~cmd:peek
@@ -124,7 +123,8 @@ module Worker (S : Serializable) = struct
       ~cmd:(Command.kick_job ~id)
       ~process:(Response.kick_job)
 
-  let stats _ ~id = failwith "TODO"
+  let stats cn ~id = request_get_yaml cn ~cmd:(Command.stats_job ~id)
+    ~resp_handler:(fun resp -> `Ok(Response.stats_tube resp) )
 end
 
 let connect ?(port=default_port) ~host = 

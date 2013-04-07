@@ -120,7 +120,7 @@ module Response = struct
       ~success_protect:(fun s -> `Kicked (Int.of_string s))
 
   let stats_tube = single_parse ~prefix:"OK" ~re:"\\d+"
-      ~success_protect:(fun s -> `Bytes s) (* YAML *)
+      ~success_protect:(fun s -> `Bytes (Int.of_string s)) (* YAML *)
 
   let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
 
