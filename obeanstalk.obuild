@@ -17,3 +17,8 @@ Test test_obs
   MainIs: test_obs.ml
   rundir: lib_test
   
+Test test_pure
+  Path: lib_test
+  MainIs: test_pure.ml
+  BuildDepends: oUnit, obeanstalk, core
+  rundir: lib_test
