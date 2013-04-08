@@ -63,6 +63,7 @@ let connect ~host ~port =
 let connect_host ~host = 
   connect ~port:default_port ~host
 
+(* independent call from everything else, mostly a sanity check *)
 let health_check ~host ~port =
   Monitor.try_with ~extract_exn:true begin fun () ->
     connect ~port ~host >>= (fun ((BS (r, w)) as bs) ->
