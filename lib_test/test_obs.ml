@@ -39,12 +39,12 @@ let create_job () =
       pf "created job\n";
       return ()
     end >>= (fun _ ->
-    (Worker.reserve bs ~timeout:2) >>| begin fun job ->
-      assert_equal (Worker.Job.data job) job_load;
-      assert_equal (Worker.Job.id job) (!put_id);
-      pf "reserved job...\n";
-      return ()
-    end) |> ignore
+      (Worker.reserve bs ~timeout:2) >>| begin fun job ->
+        assert_equal (Worker.Job.data job) job_load;
+        assert_equal (Worker.Job.id job) (!put_id);
+        pf "reserved job...\n";
+        return ()
+      end) |> ignore
   end
 
 let test_fixtures =
