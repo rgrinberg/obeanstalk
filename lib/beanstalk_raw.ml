@@ -8,6 +8,25 @@ open Beanstalk_cmd
  *  Use the higher level interface that comes with this package instead
  * *)
 
+module Writer = struct
+  include Writer
+  let write_rn ?pos ?len writer str =
+    Writer.write ?pos ?len writer str;
+    Writer.write writer "\r\n"
+end
+module Reader = struct
+  include Reader
+  let read_rn t = 
+    (Reader.read_line t) >>| function
+      (* we will live with this slight inefficiency for now *)
+      | `Ok res -> `Ok(String.(sub ~pos:0 ~len:(res |> length |> pred) res))
+      | `Eof -> `Eof
+  let read_rn_with_exn t = 
+    read_rn t >>| function
+    | `Ok res -> Or_error.try_with (fun () -> (raise_if_error res; res))
+    | `Eof -> failwith "unexpected eof"
+end
+
 type conn = BS of (Reader.t * Writer.t)
 
 let default_port = 11300
@@ -16,9 +35,9 @@ let default_tube_name = "default"
 let send (BS (_,w))  c = c |> wrap |> (Writer.write w)
 
 let recv (BS (r, _)) =
-  Reader.read_line r >>| function
+  Reader.read_rn r >>| function
   | `Ok res ->
-    Or_error.try_with (fun () -> (raise_if_error res; unwrap res))
+    Or_error.try_with (fun () -> (raise_if_error res; res))
   | `Eof -> failwith "unexpected eof"
 
 (* TODO : get rid of the extra string allocation *)
@@ -121,3 +140,29 @@ let request_get_job cn ~cmd ~resp_handler =
     method job = job
     method id = Option.value_exn (!id)
   end)
+
+let process (BS (r,w)) req rep = 
+  (let open Request in match req with
+  | Single cmd -> Writer.write_rn w (Command.to_string cmd)
+  | WithJob (cmd, {Payload.load;_}) -> begin
+      Writer.write_rn w (Command.to_string cmd);
+      Writer.write_rn w load
+  end);
+  let open Deferred.Or_error.Monad_infix in 
+  let open Response in match rep with
+  | Single cmd_reader -> 
+      (Reader.read_rn_with_exn r) >>|
+      (fun s -> `Single(s |> Command.of_string |> cmd_reader))
+  | WithPayload cmd_reader -> 
+      let res = (Reader.read_rn_with_exn r) >>= (fun str_cmd ->
+        let cmd = Command.of_string str_cmd in
+        let size = Command.size cmd in 
+        let buf = String.create size in
+        let open Deferred.Monad_infix in
+        (Reader.really_read r buf) >>= function
+          | `Eof _ -> assert false
+          | `Ok -> Deferred.Or_error.return (`WithPayload
+          (cmd_reader cmd, buf)))
+      in res
+
+

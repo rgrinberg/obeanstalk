@@ -44,37 +44,73 @@ let unwrap_smart x =
   (try if x.[len-2] = '\r'then incr count with _ -> ());
   String.sub ~pos:0 ~len:(len - (!count)) x
 
+module Payload = struct
+  type typ = [`Job | `YList | `YDict]
+  type 'a t = {
+    (* we do not use the actual types (say for job) because we do not want
+     * to introduce circular dependencies *)
+    typ : 'a;
+    load : string;
+  } with sexp
+  let size {load;_} = String.length load
+  let job load = {load; typ=`Job}
+end
+
+module Command = struct
+  type t = {
+    name : string;
+    args : string list; 
+  } with sexp
+
+  let to_string {name; args} = String.concat ~sep:" " (name::args)
+  let of_string s = 
+    match String.split ~on:' ' s with
+    | [] -> assert false
+    | name::args -> {name; args}
+
+  let size {args;_} = args |> List.last_exn |> Int.of_string
+end
+
 module Request = struct
+  type t =
+    | Single of Command.t
+    | WithJob of Command.t * [`Job] Payload.t
+
   let sp = Printf.sprintf
-  let use_tube ~tube = (sp "use %s" tube) |> wrap
+  let use_tube ~tube = (sp "use %s" tube)
   let put ?(delay=0) ~priority ~ttr ~bytes =
-    (sp "put %d %d %d %d" priority delay ttr bytes) |> wrap
+    (sp "put %d %d %d %d" priority delay ttr bytes)
   let reserve = wrap "reserve"
-  let reserve_timeout ~timeout = (sp "reserve-with-timeout %d" timeout) |> wrap
-  let delete ~id = (sp "delete %d" id) |> wrap
+  let reserve_timeout ~timeout = (sp "reserve-with-timeout %d" timeout)
+  let delete ~id = (sp "delete %d" id)
   let release ~id ~priority ~delay =
-    (sp "release %d %d %d" id priority delay) |> wrap
-  let bury ~id ~priority = (sp "bury %d %d" id priority) |> wrap
-  let touch ~id = (sp "touch %d" id) |> wrap
-  let watch ~tube = (sp "watch %s" tube) |> wrap
-  let ignore_tube ~tube = (sp "ignore %s" tube) |> wrap
-  let peek ~id = (sp "peek %d" id) |> wrap
-  let peek_ready = "peek-ready" |> wrap
-  let peek_delayed = "peek-delayed" |> wrap
-  let peek_buried = "peek-buried" |> wrap
-  let kick ~bound = (sp "kick %d" bound) |> wrap
-  let kick_job ~id = (sp "kick-job %d" id) |> wrap
-  let stats_job ~id = (sp "stats-job %d" id) |> wrap (* returns YAML *)
-  let stats_tube ~name = (sp "stats-tube %s" name) |> wrap
-  let stats = "stats" |> wrap
-  let list_tubes = "list-tubes" |> wrap
-  let list_tube_used = "list-tube-used" |> wrap
-  let list_tubes_watched = "list-tubes-watched" |> wrap
-  let quit = "quit" |> wrap
-  let pause_tube ~tube ~delay = (sp "pause-tube %s %d" tube delay) |> wrap
+    (sp "release %d %d %d" id priority delay)
+  let bury ~id ~priority = (sp "bury %d %d" id priority)
+  let touch ~id = (sp "touch %d" id)
+  let watch ~tube = (sp "watch %s" tube)
+  let ignore_tube ~tube = (sp "ignore %s" tube)
+  let peek ~id = (sp "peek %d" id)
+  let peek_ready = "peek-ready"
+  let peek_delayed = "peek-delayed"
+  let peek_buried = "peek-buried"
+  let kick ~bound = (sp "kick %d" bound)
+  let kick_job ~id = (sp "kick-job %d" id)
+  let stats_job ~id = (sp "stats-job %d" id) (* returns YAML *)
+  let stats_tube ~name = (sp "stats-tube %s" name)
+  let stats = "stats"
+  let list_tubes = "list-tubes"
+  let list_tube_used = "list-tube-used"
+  let list_tubes_watched = "list-tubes-watched"
+  let quit = "quit"
+  let pause_tube ~tube ~delay = (sp "pause-tube %s %d" tube delay)
 end
 
 module Response = struct
+
+  type 'result t =
+    | Single of (Command.t -> 'result)
+    | WithPayload of (Command.t -> 'result * Payload.typ)
+
   (* functions in this module either return the parsed response or throw
    * a Parse_failed exception. This should probably be changed to use
    * option types. *)
