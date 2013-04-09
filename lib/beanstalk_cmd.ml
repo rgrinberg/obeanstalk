@@ -102,7 +102,8 @@ module Response = struct
 
   (* functions in this module either return the parsed response or throw
    * a Parse_failed exception. This should probably be changed to use
-   * option types. *)
+   * option types. For now we will ignore any errors caused by parse
+   * failure. errors are handled much earlier anyway. *)
   exception Parse_failed
   type with_id = string -> [`Id of int]
 
@@ -160,7 +161,8 @@ module Response = struct
 
   let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
 
-  let list_tubes_any = stats_tube
+  let list_tubes_any = `WithPayload (fun {Command.name ;args} ->
+    if name <> "OK" then raise Parse_failed; `YList)
 
   let pause_tube = fail_if_unequal "PAUSED"
 
