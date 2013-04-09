@@ -165,5 +165,5 @@ let process (BS (r,w)) req rep =
       (Reader.read_rn r ) >>= function
       | `Eof -> assert false
       | `Ok buf -> 
-          assert (String.length buf = size);
-          Deferred.Or_error.return (`WithPayload (cmd_reader cmd, buf)))
+        assert (String.length buf = size);
+        Deferred.Or_error.return (`WithPayload (cmd_reader cmd, buf)))
