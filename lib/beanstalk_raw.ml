@@ -142,13 +142,13 @@ let request_get_job cn ~cmd ~resp_handler =
   end)
 
 
-(* Standalone routine, independent of almost all of the rest of the code
- * Uses the new {Request,Response,Payload,Command} module stuff for 
- * somewhat cleaner and more typesafe handling *)
+(* Standalone request routine, independent of almost all of the rest of the code
+ * Uses the new {Request,Response,Command} module stuff for somewhat
+ * cleaner and more typesafe handling *)
 let process (BS (r,w)) req rep = 
   (let open Request in match req with
    | Single cmd -> Writer.write_rn w (Command.to_string cmd)
-   | WithJob (cmd, {Payload.load;_}) -> begin
+   | WithJob (cmd, load) -> begin
        Writer.write_rn w (Command.to_string cmd);
        Writer.write_rn w load
      end);

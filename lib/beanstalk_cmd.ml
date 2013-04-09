@@ -44,18 +44,6 @@ let unwrap_smart x =
   (try if x.[len-2] = '\r'then incr count with _ -> ());
   String.sub ~pos:0 ~len:(len - (!count)) x
 
-module Payload = struct
-  type typ = [`Job | `YList | `YDict]
-  type 'a t = {
-    (* we do not use the actual types (say for job) because we do not want
-     * to introduce circular dependencies *)
-    typ : 'a;
-    load : string;
-  } with sexp
-  let size {load;_} = String.length load
-  let job load = {load; typ=`Job}
-end
-
 module Command = struct
   type t = {
     name : string;
@@ -74,9 +62,10 @@ end
 module Request = struct
   type t =
     | Single of Command.t
-    | WithJob of Command.t * [`Job] Payload.t
+    | WithJob of Command.t * string
 
   let sp = Printf.sprintf
+
   let use_tube ~tube = (sp "use %s" tube)
   let put ?(delay=0) ~priority ~ttr ~bytes =
     (sp "put %d %d %d %d" priority delay ttr bytes)
