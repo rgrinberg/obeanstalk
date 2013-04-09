@@ -18,9 +18,9 @@ module Reader = struct
   include Reader
   let read_rn t = 
     (Reader.read_line t) >>| function
-      (* we will live with this slight inefficiency for now *)
-      | `Ok res -> `Ok(String.(sub ~pos:0 ~len:(res |> length |> pred) res))
-      | `Eof -> `Eof
+    (* we will live with this slight inefficiency for now *)
+    | `Ok res -> `Ok(String.(sub ~pos:0 ~len:(res |> length |> pred) res))
+    | `Eof -> `Eof
   let read_rn_with_exn t = 
     read_rn t >>| function
     | `Ok res -> Or_error.try_with (fun () -> (raise_if_error res; res))
@@ -44,8 +44,8 @@ let recv (BS (r, _)) =
 let read_len (BS (r, _)) ~len = 
   let buf = String.create (len+2) in
   (Reader.really_read r buf) >>| function
-    | `Eof _ -> assert false
-    | `Ok -> buf |> String.sub ~pos:0 ~len
+  | `Eof _ -> assert false
+  | `Ok -> buf |> String.sub ~pos:0 ~len
 
 let send_with_data (BS (_, w)) ~cmd ~data = 
   let (cmd, data) = (wrap cmd, wrap data) in
@@ -133,36 +133,38 @@ let request_get_job cn ~cmd ~resp_handler =
   (* TODO : this handling is a little big ugly. Fix later *)
   let id = ref None in
   let length s = match resp_handler s with
-  | `Error -> failwith "TODO"
-  | `Ok (`Id i, len) -> (id := (Some i); `Ok(len)) in
+    | `Error -> failwith "TODO"
+    | `Ok (`Id i, len) -> (id := (Some i); `Ok(len)) in
   let open Deferred.Or_error.Monad_infix in 
   (request_with_len cn ~cmd ~length) >>| (fun job -> object
     method job = job
     method id = Option.value_exn (!id)
   end)
 
+
+(* Standalone routine, independent of almost all of the rest of the code
+ * Uses the new {Request,Response,Payload,Command} module stuff for 
+ * somewhat cleaner and more typesafe handling *)
 let process (BS (r,w)) req rep = 
   (let open Request in match req with
-  | Single cmd -> Writer.write_rn w (Command.to_string cmd)
-  | WithJob (cmd, {Payload.load;_}) -> begin
-      Writer.write_rn w (Command.to_string cmd);
-      Writer.write_rn w load
-  end);
+   | Single cmd -> Writer.write_rn w (Command.to_string cmd)
+   | WithJob (cmd, {Payload.load;_}) -> begin
+       Writer.write_rn w (Command.to_string cmd);
+       Writer.write_rn w load
+     end);
   let open Deferred.Or_error.Monad_infix in 
   let open Response in match rep with
   | Single cmd_reader -> 
-      (Reader.read_rn_with_exn r) >>|
-      (fun s -> `Single(s |> Command.of_string |> cmd_reader))
+    (Reader.read_rn_with_exn r) >>|
+    (fun s -> `Single(s |> Command.of_string |> cmd_reader))
   | WithPayload cmd_reader -> 
-      let res = (Reader.read_rn_with_exn r) >>= (fun str_cmd ->
+    let res = (Reader.read_rn_with_exn r) >>= (fun str_cmd ->
         let cmd = Command.of_string str_cmd in
         let size = Command.size cmd in 
         let buf = String.create size in
         let open Deferred.Monad_infix in
         (Reader.really_read r buf) >>= function
-          | `Eof _ -> assert false
-          | `Ok -> Deferred.Or_error.return (`WithPayload
-          (cmd_reader cmd, buf)))
-      in res
-
-
+        | `Eof _ -> assert false
+        | `Ok -> Deferred.Or_error.return (`WithPayload
+                     (cmd_reader cmd, buf)))
+    in res
