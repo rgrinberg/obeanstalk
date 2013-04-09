@@ -96,9 +96,9 @@ end
 
 module Response = struct
 
-  type 'result t =
-    | Single of (Command.t -> 'result)
-    | WithPayload of (Command.t -> 'result)
+  type 'result t = [
+    | `Single of (Command.t -> 'result)
+    | `WithPayload of (Command.t -> 'result) ]
 
   (* functions in this module either return the parsed response or throw
    * a Parse_failed exception. This should probably be changed to use
