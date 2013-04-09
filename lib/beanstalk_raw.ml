@@ -158,13 +158,12 @@ let process (BS (r,w)) req rep =
     (Reader.read_rn_with_exn r) >>|
     (fun s -> `Single(s |> Command.of_string |> cmd_reader))
   | WithPayload cmd_reader -> 
-    let res = (Reader.read_rn_with_exn r) >>= (fun str_cmd ->
-        let cmd = Command.of_string str_cmd in
-        let size = Command.size cmd in 
-        let buf = String.create size in
-        let open Deferred.Monad_infix in
-        (Reader.really_read r buf) >>= function
-        | `Eof _ -> assert false
-        | `Ok -> Deferred.Or_error.return (`WithPayload
-                     (cmd_reader cmd, buf)))
-    in res
+    (Reader.read_rn_with_exn r) >>= (fun str_cmd ->
+      let cmd = Command.of_string str_cmd in
+      let size = Command.size cmd in 
+      let open Deferred.Monad_infix in
+      (Reader.read_rn r ) >>= function
+      | `Eof -> assert false
+      | `Ok buf -> 
+          assert (String.length buf = size);
+          Deferred.Or_error.return (`WithPayload (cmd_reader cmd, buf)))
