@@ -44,7 +44,7 @@ let unwrap_smart x =
   (try if x.[len-2] = '\r'then incr count with _ -> ());
   String.sub ~pos:0 ~len:(len - (!count)) x
 
-module Command = struct
+module Request = struct
   let sp = Printf.sprintf
   let use_tube ~tube = (sp "use %s" tube) |> wrap
   let put ?(delay=0) ~priority ~ttr ~bytes =
