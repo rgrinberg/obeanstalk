@@ -1,6 +1,8 @@
 open Core.Std
 
-let split s ~on = 
+(** split_exn s ~on splits the string [s] on the first occurence of [on] into
+ * a tuple of strings. [on] itself is discarded *)
+let split_exn s ~on = 
   let open String in
   let i = index_exn s on in
   let len = (length s) - i in
@@ -12,7 +14,7 @@ let to_dict s =
   | [] -> [] (* first element should be header *)
   | _::lines -> (* I assume first line is the header *)
     lines |> List.filter_map ~f:(fun l -> 
-      try let (k,v) = split ~on:':' l in Some (k, String.strip v)
+      try let (k,v) = split_exn ~on:':' l in Some (k, String.strip v)
       (* TODO : fix this "inelegant" error handling *)
       with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
 

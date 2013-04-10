@@ -47,7 +47,7 @@ let sample_yaml2 = "---
 let id x = x
 
 let test_split () =
-  let (k,v) = Yaml.split "test: 123" ~on:':' in
+  let (k,v) = Yaml.split_exn "test: 123" ~on:':' in
   assert_equal k "test" ~printer:id;
   assert_equal v " 123" ~printer:id
 

@@ -147,29 +147,29 @@ let request_get_job cn ~cmd ~resp_handler =
  * cleaner and more typesafe handling. *)
 module Exp = struct
   let send (BS (r,w)) req = 
-    (let open Request in match req with
+    let open Request in match req with
     | Single cmd -> Writer.write_rn w (Command.to_string cmd)
     | WithJob (cmd, load) -> begin
         Writer.write_rn w (Command.to_string cmd);
         Writer.write_rn w load
-      end)
+      end
 
   let recv_single (BS (r, _)) (`Single cmd_reader) = 
     let open Deferred.Or_error.Monad_infix in 
     (Reader.read_rn_with_exn r) >>|
-    (fun s -> s |> Command.of_string |> cmd_reader)
+    fun s -> s |> Command.of_string |> cmd_reader
 
   let recv_payload (BS (r, _)) (`WithPayload cmd_reader) = 
     let open Deferred.Or_error.Monad_infix in 
-    (Reader.read_rn_with_exn r) >>= (fun str_cmd ->
-      let cmd = Command.of_string str_cmd in
-      let size = Command.size cmd in 
-      let open Deferred.Monad_infix in
-      (Reader.read_rn r ) >>= function
-      | `Eof -> assert false
-      | `Ok buf -> 
-        assert (String.length buf = size);
-        Deferred.Or_error.return (cmd_reader cmd buf))
+    (Reader.read_rn_with_exn r) >>= fun str_cmd ->
+    let cmd = Command.of_string str_cmd in
+    let size = Command.size cmd in 
+    let open Deferred.Monad_infix in
+    (Reader.read_rn r) >>= function
+    | `Eof -> assert false
+    | `Ok buf -> 
+      assert (String.length buf = size);
+      Deferred.Or_error.return (cmd_reader cmd buf)
 
   open Payload
   (* a little ugly since we don't parse jobs. but that function is set
