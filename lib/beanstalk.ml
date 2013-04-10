@@ -44,8 +44,8 @@ module Tube = struct
     (recv_payload cn Response.list_tubes_any) >>| (fun v -> parse_response v)
 
   let stats cn ~tube = request_get_yaml_dict cn 
-    ~cmd:(Request.stats_tube ~name:tube) 
-    ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
+      ~cmd:(Request.stats_tube ~name:tube) 
+      ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
 
   let pause cn ~tube ~delay = request_process_ignore cn
       ~cmd:(Request.pause_tube ~tube ~delay)
@@ -133,7 +133,7 @@ module Worker (S : Serializable) = struct
       ~process:(Response.kick_job)
 
   let stats cn ~id = request_get_yaml_dict cn ~cmd:(Request.stats_job ~id)
-    ~resp_handler:(fun resp -> `Ok(Response.stats_tube resp) )
+      ~resp_handler:(fun resp -> `Ok(Response.stats_tube resp) )
 end
 
 let connect ?(port=default_port) ~host = 

@@ -146,7 +146,7 @@ let request_get_job cn ~cmd ~resp_handler =
  * Uses the new {Request,Response,Command} module stuff for somewhat
  * cleaner and more typesafe handling. *)
 module Exp = struct
-  let send (BS (r,w)) req rep = 
+  let send (BS (r,w)) req = 
     (let open Request in match req with
     | Single cmd -> Writer.write_rn w (Command.to_string cmd)
     | WithJob (cmd, load) -> begin
@@ -169,5 +169,14 @@ module Exp = struct
       | `Eof -> assert false
       | `Ok buf -> 
         assert (String.length buf = size);
-        Deferred.Or_error.return (cmd_reader cmd, buf))
+        Deferred.Or_error.return (cmd_reader cmd buf))
+
+  open Payload
+  (* a little ugly since we don't parse jobs. but that function is set
+   * by the user and it seems a little clumsy to pass it around when it
+   * can just be applied to the result just as conveniently *)
+  let parse_response : type a . a Payload.t -> a = function
+    | YList x -> parse_yaml_list x
+    | YDict x -> parse_yaml_dict x
+    | Job x -> x 
 end
