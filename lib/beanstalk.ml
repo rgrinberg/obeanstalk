@@ -37,10 +37,11 @@ end
 
 module Tube = struct
 
-  (* list-tubes *)
-  let all cn = request_get_yaml_list cn
-    ~cmd:(Request.list_tubes)
-    ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
+  let all cn = 
+    let open Exp in
+    send cn (Request.list_tubes);
+    let open Deferred.Or_error.Monad_infix in
+    (recv_payload cn Response.list_tubes_any) >>| (fun v -> parse_response v)
 
   let stats cn ~tube = request_get_yaml_dict cn 
     ~cmd:(Request.stats_tube ~name:tube) 

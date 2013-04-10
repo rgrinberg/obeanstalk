@@ -63,6 +63,7 @@ module Command = struct
     | name::args -> {name; args}
 
   let size {args;_} = args |> List.last_exn |> Int.of_string
+  let no_args name = {name; args=[]}
 end
 
 module Request = struct
@@ -93,7 +94,8 @@ module Request = struct
   let stats_job ~id = (sp "stats-job %d" id) (* returns YAML *)
   let stats_tube ~name = (sp "stats-tube %s" name)
   let stats = "stats"
-  let list_tubes = "list-tubes"
+
+  let list_tubes = Single(Command.no_args "list-tubes")
   let list_tube_used = "list-tube-used"
   let list_tubes_watched = "list-tubes-watched"
   let quit = "quit"
@@ -168,7 +170,7 @@ module Response = struct
   let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
 
   let list_tubes_any = `WithPayload (fun {Command.name ;args} ->
-    if name <> "OK" then raise Parse_failed; `YList)
+      if name <> "OK" then raise Parse_failed; (fun x -> Payload.YList(x)))
 
   let pause_tube = fail_if_unequal "PAUSED"
 
