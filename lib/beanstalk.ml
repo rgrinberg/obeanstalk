@@ -7,6 +7,7 @@ open Beanstalk_raw
 
 type conn = Beanstalk_raw.conn
 
+(* TODO : not the mose useful data type, consider removing? *)
 type conf = (string, string) List.Assoc.t
 
 module type Serializable = sig
