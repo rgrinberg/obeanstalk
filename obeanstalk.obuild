@@ -7,7 +7,7 @@ obuild-ver:  1
 
 Library obeanstalk
   BuildDepends: core, async, sexplib, sexplib.syntax, str
-  Modules: Obeanstalk, Beanstalk, Beanstalk_raw, Beanstalk_cmd, Beanstalk_exc
+  Modules: Obeanstalk, Beanstalk, Beanstalk_raw, Beanstalk_cmd, Beanstalk_exc, Yaml
   pp: camlp4o
   Path: lib
 

@@ -123,11 +123,11 @@ let request_with_len : conn -> cmd:string -> _ =
 
 let request_get_yaml_dict cn ~cmd ~resp_handler = 
   let open Deferred.Or_error.Monad_infix in 
-  (request_with_len cn ~cmd ~length:resp_handler) >>| parse_yaml_dict
+  (request_with_len cn ~cmd ~length:resp_handler) >>| Yaml.to_dict
 
 let request_get_yaml_list cn ~cmd ~resp_handler = 
   let open Deferred.Or_error.Monad_infix in 
-  (request_with_len cn ~cmd ~length:resp_handler) >>| parse_yaml_list
+  (request_with_len cn ~cmd ~length:resp_handler) >>| Yaml.to_list
 
 let request_get_job cn ~cmd ~resp_handler =
   (* TODO : this handling is a little big ugly. Fix later *)
@@ -176,7 +176,7 @@ module Exp = struct
    * by the user and it seems a little clumsy to pass it around when it
    * can just be applied to the result just as conveniently *)
   let parse_response : type a . a Payload.t -> a = function
-    | YList x -> parse_yaml_list x
-    | YDict x -> parse_yaml_dict x
+    | YList x -> Yaml.to_list x
+    | YDict x -> Yaml.to_dict x
     | Job x -> x 
 end

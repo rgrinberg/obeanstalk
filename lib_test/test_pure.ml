@@ -47,18 +47,18 @@ let sample_yaml2 = "---
 let id x = x
 
 let test_split () =
-  let (k,v) = split "test: 123" ~on:':' in
+  let (k,v) = Yaml.split "test: 123" ~on:':' in
   assert_equal k "test" ~printer:id;
   assert_equal v " 123" ~printer:id
 
 let test_yaml_dict () = 
-  let yaml = parse_yaml_dict sample_yaml in
+  let yaml = Yaml.to_dict sample_yaml in
   assert_bool "more than 10" ((List.length yaml) > 10);
   assert_equal (List.Assoc.find_exn yaml "pid") "13297";
   assert_equal (List.Assoc.find_exn yaml "cmd-pause-tube") "0"
 
 let test_yaml_list () = 
-  let yaml = parse_yaml_list sample_yaml2 in
+  let yaml = Yaml.to_list sample_yaml2 in
   assert_equal (List.hd_exn yaml) "default" ~printer:id
 
 let test_fixtures =
