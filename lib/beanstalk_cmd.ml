@@ -8,7 +8,6 @@ let split s ~on =
   (sub s ~pos:0 ~len:i, sub s ~pos:(i+1) ~len:(len-1))
 
 (* just enough to parse whatever we get from obeanstalk *)
-(* TODO : this function is still untested *)
 let parse_yaml_dict s = 
   match String.split s ~on:'\n' with
   | [] -> [] (* first element should be header *)
@@ -43,6 +42,13 @@ let unwrap_smart x =
   (try if x.[len-1] = '\n' then incr count with _ -> ());
   (try if x.[len-2] = '\r'then incr count with _ -> ());
   String.sub ~pos:0 ~len:(len - (!count)) x
+
+module Payload = struct
+  type _ t = 
+    | YList : string -> (string list) t
+    | YDict : string -> ((string * string) list) t
+    | Job : string -> string t
+end
 
 module Command = struct
   type t = {
