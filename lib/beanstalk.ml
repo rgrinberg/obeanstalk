@@ -42,7 +42,7 @@ module Tube = struct
     let open Exp in
     send cn (Request.list_tubes);
     let open Deferred.Or_error.Monad_infix in
-    (recv_payload cn Response.list_tubes_any) >>| (fun v -> parse_response v)
+    (recv_payload cn Response.list_tubes_any) >>| parse_response
 
   let stats cn ~tube = request_get_yaml_dict cn 
       ~cmd:(Request.stats_tube ~name:tube) 
