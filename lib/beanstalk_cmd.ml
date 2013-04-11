@@ -29,6 +29,8 @@ module Command = struct
     args : string list; 
   } with sexp
 
+  type 'a reader = t -> 'a
+
   let to_string {name; args} = String.concat ~sep:" " (name::args)
   let of_string s = 
     match String.split ~on:' ' s with
@@ -76,10 +78,9 @@ module Request = struct
 end
 
 module Response = struct
-
   type 'result t = [
-    | `Single of (Command.t -> 'result)
-    | `WithPayload of (Command.t -> 'result) ]
+    | `Single of 'result Command.reader
+    | `WithPayload of 'result Command.reader ]
 
   (* functions in this module either return the parsed response or throw
    * a Parse_failed exception. This should probably be changed to use
