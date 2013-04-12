@@ -78,9 +78,11 @@ module Request = struct
 end
 
 module Response = struct
+  (* this type isn't referenced anywhere it's just for documentation 
+   * for now *)
   type 'result t = [
     | `Single of 'result Command.reader
-    | `WithPayload of 'result Command.reader ]
+    | `WithPayload of (string -> 'result) Command.reader ]
 
   (* functions in this module either return the parsed response or throw
    * a Parse_failed exception. This should probably be changed to use
