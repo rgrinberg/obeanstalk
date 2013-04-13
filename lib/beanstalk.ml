@@ -107,12 +107,14 @@ module Worker (S : Serializable) = struct
     (fun job -> Job.create ~data:(Job.S.deserialize job#job) ~id:(job#id))
 
   let put cn ?delay ~priority ~ttr ~job = 
+    let open Exp in 
     let data = Job.S.serialize job in
     let bytes = Job.S.size job in
-    let open Deferred.Or_error.Monad_infix in 
-    (request_with_job cn ~cmd:(Request.put ?delay ~priority ~ttr ~bytes)
-       ~data ~process:(Response.put)) >>| 
-    (fun (`Id id) -> Job.create ~id ~data:job)
+    process_k cn
+      ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:data)
+      ~rep:(Response.put)
+      ~k:(fun (`Id id, j) -> Job.create ~id ~data:job) (* fix stupid naming *)
+      |> extract `WithPayload
 
   let bury cn ~id ~priority =
     let open Exp in
@@ -120,9 +122,11 @@ module Worker (S : Serializable) = struct
       ~req:(Request.bury ~id ~priority)
       ~rep:(Response.bury) |> extract `Single
 
-  let delete cn ~id = request_process_ignore cn
-      ~cmd:(Request.delete ~id)
-      ~process:(Response.delete)
+  let delete cn ~id = 
+    let open Exp in
+    process cn
+      ~req:(Request.delete ~id)
+      ~rep:(Response.delete) |> extract `Single
 
   let touch cn ~id =  request_process_ignore cn
       ~cmd:(Request.touch ~id)

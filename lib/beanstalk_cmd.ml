@@ -54,11 +54,16 @@ module Request = struct
 
   let use_tube ~tube = Single(Command.one_arg "use" tube)
 
-  let put ?(delay=0) ~priority ~ttr ~bytes =
-    (sp "put %d %d %d %d" priority delay ttr bytes)
+  let put ?(delay=0) ~priority ~ttr ~bytes ~job =
+    WithJob(Command.create ~name:"put" 
+      ~args:([priority;delay;ttr;bytes] |> List.map ~f:Int.to_string),
+      job)
+
   let reserve = wrap "reserve"
   let reserve_timeout ~timeout = (sp "reserve-with-timeout %d" timeout)
-  let delete ~id = (sp "delete %d" id)
+
+  let delete ~id = Single(Command.one_arg "delete" (Int.to_string id))
+
   let release ~id ~priority ~delay =
     (sp "release %d %d %d" id priority delay)
 
@@ -128,11 +133,15 @@ module Response = struct
     single_parse ~prefix ~re:"[0-9]+"
       ~success_protect:(fun s -> `Id(Int.of_string s))
 
-  let put : with_id = job_parse ~prefix:"INSERTED"
+  let verify_only ~is = `Single(fun {Command.name;_} -> verify name ~is)
 
-  let bury = `Single(fun {Command.name;_} -> verify name ~is:"BURIED")
+  let put = `WithPayload(fun {Command.name;args} ->
+    verify name ~is:"INSERTED";
+    (fun j -> (`Id (args |> List.hd_exn |> Int.of_string), Payload.Job(j))))
 
-  let delete : with_id = job_parse ~prefix:"DELETED"
+  let bury = verify_only ~is:"BURIED"
+
+  let delete = verify_only ~is:"DELETED"
 
   let using = `Single(fun {Command.name; args} ->
     verify name ~is:"USING"; `Tube (List.hd_exn args))
