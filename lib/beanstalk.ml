@@ -56,9 +56,11 @@ module Tube = struct
     request_get_yaml_list cn ~cmd:(Request.list_tubes_watched)
       ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
 
-  let watch cn ~tube = request_process cn
-      ~cmd:(Request.watch ~tube)
-      ~process:(Response.watch)
+  let watch cn ~tube =
+    let open Exp in
+    process cn
+      ~req:(Request.ignore_tube ~tube)
+      ~rep:(Response.ignore_tube) |> extract `Single
 
   let ignore_tube cn ~tube = 
     let open Exp in

@@ -61,7 +61,7 @@ module Request = struct
     (sp "release %d %d %d" id priority delay)
   let bury ~id ~priority = (sp "bury %d %d" id priority)
   let touch ~id = (sp "touch %d" id)
-  let watch ~tube = (sp "watch %s" tube)
+  let watch ~tube = Single(Command.one_arg "watch" tube)
   let ignore_tube ~tube = Single(Command.one_arg "ignore" tube)
   let peek ~id = (sp "peek %d" id)
   let peek_ready = "peek-ready"
@@ -132,13 +132,12 @@ module Response = struct
   let touch = fail_if_unequal "TOUCHED"
   let kick_job = fail_if_unequal "KICKED"
 
-  let watch = single_parse ~prefix:"WATCHING" ~re:"\\d+"
-      ~success_protect:(fun s -> `Watching (Int.of_string s))
-
-  let ignore_tube = `Single(fun {Command.name;args} ->
+  let watch = `Single(fun {Command.name;args} ->
     verify name ~is:"WATCHING";
     `Watching (args |> List.hd_exn |> Int.of_string))
 
+  let ignore_tube = watch
+  
   let peek_any = tuple_parse ~prefix:"FOUND"
       ~first:("\\d+", (fun s -> `Id(Int.of_string s)))
       ~second:("\\d+",  (fun s -> `Bytes(Int.of_string s)))
