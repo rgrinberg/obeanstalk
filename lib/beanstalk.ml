@@ -168,8 +168,12 @@ module Worker (S : Serializable) = struct
       ~req:(Request.kick_job ~id)
       ~rep:(Response.kick_job) |> extract `Single
 
-  let stats cn ~id = request_get_yaml_dict cn ~cmd:(Request.stats_job ~id)
-      ~resp_handler:(fun resp -> `Ok(Response.stats_job resp) )
+  let stats cn ~id = 
+    let open Exp in
+    process_k cn
+      ~req:(Request.stats_job ~id)
+      ~rep:(Response.stats_job)
+      ~k:parse_response |> extract `WithPayload
 end
 
 let connect ?(port=default_port) ~host = 
