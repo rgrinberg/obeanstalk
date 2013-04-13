@@ -48,13 +48,18 @@ module Tube = struct
       ~cmd:(Request.stats_tube ~name:tube) 
       ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
 
-  let pause cn ~tube ~delay = request_process_ignore cn
-      ~cmd:(Request.pause_tube ~tube ~delay)
-      ~process:(Response.pause_tube)
+  let pause cn ~tube ~delay = 
+    let open Exp in
+    process cn
+      ~req:(Request.pause_tube ~tube ~delay)
+      ~rep:(Response.pause_tube) |> extract `Single
 
   let watched cn = 
-    request_get_yaml_list cn ~cmd:(Request.list_tubes_watched)
-      ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
+    let open Exp in
+    process_k cn
+      ~req:(Request.list_tubes_watched)
+      ~rep:(Response.list_tubes_any)
+      ~k:parse_response |> extract `WithPayload
 
   let watch cn ~tube =
     let open Exp in

@@ -31,6 +31,8 @@ module Command = struct
 
   type 'a reader = t -> 'a
 
+  let create ~name ~args = {name;args}
+
   let to_string {name; args} = String.concat ~sep:" " (name::args)
   let of_string s = 
     match String.split ~on:' ' s with
@@ -74,9 +76,12 @@ module Request = struct
   let stats = "stats"
   let list_tubes = Single(Command.no_args "list-tubes")
   let list_tube_used = Single(Command.no_args "list-tube-used")
-  let list_tubes_watched = "list-tubes-watched"
+  let list_tubes_watched = Single(Command.no_args "list-tubes-watched")
   let quit = "quit"
-  let pause_tube ~tube ~delay = (sp "pause-tube %s %d" tube delay)
+
+  let pause_tube ~tube ~delay =
+    Single(Command.create ~name:"pause-tube" 
+                          ~args:[tube;(Int.to_string delay)])
 end
 
 module Response = struct
@@ -150,10 +155,11 @@ module Response = struct
 
   let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
 
-  let list_tubes_any = `WithPayload (fun {Command.name ;args} ->
+  let list_tubes_any = `WithPayload (fun {Command.name ;_} ->
       verify name ~is:"OK"; (fun x -> Payload.YList(x)))
 
-  let pause_tube = fail_if_unequal "PAUSED"
+  let pause_tube = `Single (fun {Command.name; _} ->
+    verify name ~is:"PAUSED")
 
   let try_with t ~resp = Or_error.try_with (fun () -> (t resp))
   let try_with_ignore t ~resp = Or_error.try_with (fun () -> ignore (t resp))
