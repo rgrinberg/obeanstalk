@@ -115,7 +115,7 @@ module Worker (S : Serializable) = struct
     process_k cn
       ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:data)
       ~rep:(Response.put)
-      ~k:(fun (`Id id, j) -> Job.create ~id ~data:job) (* fix stupid naming *)
+      ~k:(fun (`Id id) -> Job.create ~id ~data:job) (* fix stupid naming *)
     |> extract `WithPayload
 
   let bury cn ~id ~priority =
@@ -142,19 +142,21 @@ module Worker (S : Serializable) = struct
       ~req:(Request.release ~id ~priority ~delay)
       ~rep:(Response.release) |> extract `Single
 
-  let peek_get_job cn ~peek =
-    let open Deferred.Or_error.Monad_infix in
-    (request_get_job cn ~cmd:peek
-       ~resp_handler:(fun r -> `Ok (Response.peek_any r)))
-    >>| (fun job -> Job.create ~data:(Job.S.deserialize job#job) ~id:(job#id))
+  let peek_any cn ~req = 
+    let open Exp in
+    process_k cn
+      ~req ~rep:(Response.peek_any)
+      ~k:(fun (`Id id, data) -> 
+        Job.create ~id ~data:(data |> parse_response |> Job.S.deserialize))
+    |> extract `WithPayload
 
-  let peek cn ~id = peek_get_job cn ~peek:(Request.peek ~id)
+  let peek cn ~id = peek_any cn ~req:(Request.peek ~id)
 
-  let peek_ready cn = peek_get_job cn ~peek:(Request.peek_ready)
+  let peek_ready cn = peek_any cn ~req:(Request.peek_ready)
 
-  let peek_delayed cn = peek_get_job cn ~peek:(Request.peek_delayed)
+  let peek_delayed cn = peek_any cn ~req:(Request.peek_delayed)
 
-  let peek_buried cn = peek_get_job cn ~peek:(Request.peek_buried)
+  let peek_buried cn = peek_any cn ~req:(Request.peek_buried)
 
   let kick_bound cn ~bound =
     let open Exp in

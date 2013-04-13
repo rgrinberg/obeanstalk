@@ -82,10 +82,10 @@ module Request = struct
   let watch ~tube = Single(Command.one_arg "watch" tube)
   let ignore_tube ~tube = Single(Command.one_arg "ignore" tube)
 
-  let peek ~id = (sp "peek %d" id)
-  let peek_ready = "peek-ready"
-  let peek_delayed = "peek-delayed"
-  let peek_buried = "peek-buried"
+  let peek ~id = Single(Command.one_id "peek" id)
+  let peek_ready = Single(Command.no_args "peek-ready")
+  let peek_delayed = Single(Command.no_args "peek-delayed")
+  let peek_buried = Single(Command.no_args "peek-buried")
 
   let kick_bound ~bound = Single(Command.one_id "kick" bound)
 
@@ -145,9 +145,9 @@ module Response = struct
 
   let verify_only ~is = `Single(fun {Command.name;_} -> verify name ~is)
 
-  let put = `WithPayload(fun {Command.name;args} ->
+  let put = `Single(fun {Command.name;args} ->
       verify name ~is:"INSERTED";
-      (fun j -> (`Id (args |> List.hd_exn |> Int.of_string), Payload.Job(j))))
+      (`Id (args |> List.hd_exn |> Int.of_string)))
 
   let bury = verify_only ~is:"BURIED"
 
@@ -170,25 +170,26 @@ module Response = struct
 
   let ignore_tube = watch
 
-  let peek_any = tuple_parse ~prefix:"FOUND"
-      ~first:("\\d+", (fun s -> `Id(Int.of_string s)))
-      ~second:("\\d+",  (fun s -> `Bytes(Int.of_string s)))
+  let peek_any = `WithPayload (fun {Command.name; args} ->
+      verify name ~is:"FOUND";
+      let id = args |> List.hd_exn |> Int.of_string in 
+      fun x -> (`Id id, Payload.Job(x)))
 
   let kick_bound = `Single(fun {Command.name;args} ->
-    verify name ~is:"KICKED"; `Kicked (args |> List.hd_exn |> Int.of_string))
+      verify name ~is:"KICKED"; `Kicked (args |> List.hd_exn |> Int.of_string))
 
   let stats_job = single_parse ~prefix:"OK" ~re:"\\d+"
       ~success_protect:(fun s -> `Bytes (Int.of_string s)) (* YAML *)
 
   let stats_job = `WithPayload (fun {Command.name; _} ->
-    verify name ~is:"OK"; (fun x -> Payload.YDict(x)))
+      verify name ~is:"OK"; (fun x -> Payload.YDict(x)))
 
   let stats_tube = stats_job
 
   let reserve = `WithPayload (fun {Command.name; args} ->
-    verify name ~is:"RESERVED";
-    let id = args |> List.hd_exn |> Int.of_string in 
-    fun x -> (`Id id, Payload.Job(x)))
+      verify name ~is:"RESERVED";
+      let id = args |> List.hd_exn |> Int.of_string in 
+      fun x -> (`Id id, Payload.Job(x)))
 
   let list_tubes_any = `WithPayload (fun {Command.name ;_} ->
       verify name ~is:"OK"; (fun x -> Payload.YList(x)))
