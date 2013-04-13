@@ -60,9 +60,12 @@ module Tube = struct
       ~cmd:(Request.watch ~tube)
       ~process:(Response.watch)
 
-  let ignore_tube cn ~tube = request_process_ignore cn 
-      ~cmd:(Request.ignore_tube ~tube)
-      ~process:(Response.ignore_tube)
+  let ignore_tube cn ~tube = 
+    let open Exp in
+    process_k cn
+      ~req:(Request.ignore_tube ~tube)
+      ~rep:(Response.ignore_tube)
+      ~k:ignore |> extract `Single
 
   let use cn ~tube = 
     let open Exp in

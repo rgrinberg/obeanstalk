@@ -62,7 +62,7 @@ module Request = struct
   let bury ~id ~priority = (sp "bury %d %d" id priority)
   let touch ~id = (sp "touch %d" id)
   let watch ~tube = (sp "watch %s" tube)
-  let ignore_tube ~tube = (sp "ignore %s" tube)
+  let ignore_tube ~tube = Single(Command.one_arg "ignore" tube)
   let peek ~id = (sp "peek %d" id)
   let peek_ready = "peek-ready"
   let peek_delayed = "peek-delayed"
@@ -95,6 +95,8 @@ module Response = struct
 
   let group x = "\\(" ^ x ^ "\\)"
 
+  let verify ~is s = if s <> is then raise Parse_failed
+
   let single_parse ~prefix ~re ~success_protect= 
     let rex = Str.regexp ("^" ^ prefix ^ (group re) ^ "$") in
     (fun s -> 
@@ -122,7 +124,7 @@ module Response = struct
   let delete : with_id = job_parse ~prefix:"DELETED"
 
   let using = `Single(fun {Command.name; args} ->
-    if name <> "USING" then raise Parse_failed; `Tube (List.hd_exn args))
+    verify name ~is:"USING"; `Tube (List.hd_exn args))
 
   let fail_if_unequal eq s = if s = eq then `Ok else raise Parse_failed
 
@@ -133,7 +135,9 @@ module Response = struct
   let watch = single_parse ~prefix:"WATCHING" ~re:"\\d+"
       ~success_protect:(fun s -> `Watching (Int.of_string s))
 
-  let ignore_tube = watch (* same response in both cases *)
+  let ignore_tube = `Single(fun {Command.name;args} ->
+    verify name ~is:"WATCHING";
+    `Watching (args |> List.hd_exn |> Int.of_string))
 
   let peek_any = tuple_parse ~prefix:"FOUND"
       ~first:("\\d+", (fun s -> `Id(Int.of_string s)))
@@ -148,7 +152,7 @@ module Response = struct
   let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
 
   let list_tubes_any = `WithPayload (fun {Command.name ;args} ->
-      if name <> "OK" then raise Parse_failed; (fun x -> Payload.YList(x)))
+      verify name ~is:"OK"; (fun x -> Payload.YList(x)))
 
   let pause_tube = fail_if_unequal "PAUSED"
 
