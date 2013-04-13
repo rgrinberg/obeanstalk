@@ -59,10 +59,12 @@ module Request = struct
 
   let put ?(delay=0) ~priority ~ttr ~bytes ~job =
     WithJob(Command.create_ints ~name:"put" 
-      ~args:[priority;delay;ttr;bytes], job)
+        ~args:[priority;delay;ttr;bytes], job)
 
-  let reserve = wrap "reserve"
-  let reserve_timeout ~timeout = (sp "reserve-with-timeout %d" timeout)
+  let reserve = Single(Command.no_args "reserve")
+
+  let reserve_timeout ~timeout = 
+    Single(Command.one_arg "reserve-with-timeout" (Int.to_string timeout))
 
   let delete ~id = Single(Command.one_arg "delete" (Int.to_string id))
 
@@ -71,7 +73,7 @@ module Request = struct
 
   let bury ~id ~priority = 
     Single(Command.create ~name:"bury"
-      ~args:[Int.to_string id; Int.to_string priority])
+        ~args:[Int.to_string id; Int.to_string priority])
 
   let touch ~id = (sp "touch %d" id)
   let watch ~tube = Single(Command.one_arg "watch" tube)
@@ -92,7 +94,7 @@ module Request = struct
 
   let pause_tube ~tube ~delay =
     Single(Command.create ~name:"pause-tube" 
-                          ~args:[tube;(Int.to_string delay)])
+        ~args:[tube;(Int.to_string delay)])
 end
 
 module Response = struct
@@ -138,15 +140,15 @@ module Response = struct
   let verify_only ~is = `Single(fun {Command.name;_} -> verify name ~is)
 
   let put = `WithPayload(fun {Command.name;args} ->
-    verify name ~is:"INSERTED";
-    (fun j -> (`Id (args |> List.hd_exn |> Int.of_string), Payload.Job(j))))
+      verify name ~is:"INSERTED";
+      (fun j -> (`Id (args |> List.hd_exn |> Int.of_string), Payload.Job(j))))
 
   let bury = verify_only ~is:"BURIED"
 
   let delete = verify_only ~is:"DELETED"
 
   let using = `Single(fun {Command.name; args} ->
-    verify name ~is:"USING"; `Tube (List.hd_exn args))
+      verify name ~is:"USING"; `Tube (List.hd_exn args))
 
   let fail_if_unequal eq s = if s = eq then `Ok else raise Parse_failed
 
@@ -156,11 +158,11 @@ module Response = struct
   let kick_job = fail_if_unequal "KICKED"
 
   let watch = `Single(fun {Command.name;args} ->
-    verify name ~is:"WATCHING";
-    `Watching (args |> List.hd_exn |> Int.of_string))
+      verify name ~is:"WATCHING";
+      `Watching (args |> List.hd_exn |> Int.of_string))
 
   let ignore_tube = watch
-  
+
   let peek_any = tuple_parse ~prefix:"FOUND"
       ~first:("\\d+", (fun s -> `Id(Int.of_string s)))
       ~second:("\\d+",  (fun s -> `Bytes(Int.of_string s)))
@@ -172,15 +174,18 @@ module Response = struct
       ~success_protect:(fun s -> `Bytes (Int.of_string s)) (* YAML *)
 
   let stats_tube = `WithPayload (fun {Command.name; _} ->
-    verify name ~is:"OK"; (fun x -> Payload.YDict(x)))
+      verify name ~is:"OK"; (fun x -> Payload.YDict(x)))
 
-  let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
+  let reserve = `WithPayload (fun {Command.name; args} ->
+    verify name ~is:"RESERVED";
+    let id = args |> List.hd_exn |> Int.of_string in 
+    fun x -> (`Id id, Payload.Job(x)))
 
   let list_tubes_any = `WithPayload (fun {Command.name ;_} ->
       verify name ~is:"OK"; (fun x -> Payload.YList(x)))
 
   let pause_tube = `Single (fun {Command.name; _} ->
-    verify name ~is:"PAUSED")
+      verify name ~is:"PAUSED")
 
   let try_with t ~resp = Or_error.try_with (fun () -> (t resp))
   let try_with_ignore t ~resp = Or_error.try_with (fun () -> ignore (t resp))

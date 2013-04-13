@@ -98,13 +98,15 @@ module Worker (S : Serializable) = struct
   type t = Job.t
 
   let reserve ?timeout cn = 
-    let cmd = match timeout with
+    let open Exp in
+    let req = match timeout with
       | None -> Request.reserve
-      | Some x -> Request.reserve_timeout ~timeout:x
-    in let open Deferred.Or_error.Monad_infix in 
-    (request_get_job cn ~cmd
-       ~resp_handler:(fun r -> `Ok (Response.reserve r))) >>|
-    (fun job -> Job.create ~data:(Job.S.deserialize job#job) ~id:(job#id))
+      | Some timeout -> Request.reserve_timeout ~timeout
+    in process_k cn
+      ~req ~rep:(Response.reserve)
+      ~k:(fun (`Id id, data) -> 
+        Job.create ~id ~data:(data |> parse_response |> Job.S.deserialize))
+       |> extract `WithPayload
 
   let put cn ?delay ~priority ~ttr ~job = 
     let open Exp in 
@@ -114,7 +116,7 @@ module Worker (S : Serializable) = struct
       ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:data)
       ~rep:(Response.put)
       ~k:(fun (`Id id, j) -> Job.create ~id ~data:job) (* fix stupid naming *)
-      |> extract `WithPayload
+    |> extract `WithPayload
 
   let bury cn ~id ~priority =
     let open Exp in
