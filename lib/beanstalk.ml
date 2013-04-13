@@ -130,9 +130,11 @@ module Worker (S : Serializable) = struct
       ~req:(Request.delete ~id)
       ~rep:(Response.delete) |> extract `Single
 
-  let touch cn ~id =  request_process_ignore cn
-      ~cmd:(Request.touch ~id)
-      ~process:(Response.touch)
+  let touch cn ~id =
+    let open Exp in
+    process cn
+      ~req:(Request.touch ~id)
+      ~rep:(Response.touch) |> extract `Single
 
   let release cn ~id ~priority ~delay =
     let open Exp in

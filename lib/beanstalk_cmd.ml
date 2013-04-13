@@ -75,13 +75,16 @@ module Request = struct
     Single(Command.create ~name:"bury"
         ~args:[Int.to_string id; Int.to_string priority])
 
-  let touch ~id = (sp "touch %d" id)
+  let touch ~id = Single (Command.one_arg "touch" (Int.to_string id))
+
   let watch ~tube = Single(Command.one_arg "watch" tube)
   let ignore_tube ~tube = Single(Command.one_arg "ignore" tube)
+
   let peek ~id = (sp "peek %d" id)
   let peek_ready = "peek-ready"
   let peek_delayed = "peek-delayed"
   let peek_buried = "peek-buried"
+
   let kick ~bound = (sp "kick %d" bound)
   let kick_job ~id = (sp "kick-job %d" id)
   let stats_job ~id = (sp "stats-job %d" id) (* returns YAML *)
@@ -154,7 +157,8 @@ module Response = struct
 
   let release = verify_only ~is:"RELEASED"
 
-  let touch = fail_if_unequal "TOUCHED"
+  let touch = verify_only ~is:"TOUCHED"
+
   let kick_job = fail_if_unequal "KICKED"
 
   let watch = `Single(fun {Command.name;args} ->
