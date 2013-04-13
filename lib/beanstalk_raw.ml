@@ -180,7 +180,7 @@ module Exp = struct
     | (`Single _) as rep -> `Single (recv_single cn rep)
     | (`WithPayload _) as rep -> `WithPayload (recv_payload cn rep)
 
-  let process_k cn ~req ~rep k = (* FIXME *)
+  let process_k cn ~req ~rep ~k = (* FIXME *)
     let open Deferred.Or_error.Monad_infix in 
     match process cn ~req ~rep with
     | `Single x -> `Single (x >>| k)

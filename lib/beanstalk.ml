@@ -66,14 +66,16 @@ module Tube = struct
 
   let use cn ~tube = 
     let open Exp in
-    send cn (Request.use_tube ~tube);
-    let open Deferred.Or_error.Monad_infix in
-    (recv_single cn Response.using) >>| ignore
+    process_k cn 
+      ~req:(Request.use_tube ~tube)
+      ~rep:(Response.using)
+      ~k:ignore |> extract `WithPayload
 
   let using cn =
-    let open Exp in process cn
-    ~req:(Request.list_tube_used)
-    ~rep:(Response.using) |> extract `Single
+    let open Exp in
+    process cn
+      ~req:(Request.list_tube_used)
+      ~rep:(Response.using) |> extract `Single
 
 end  
 
