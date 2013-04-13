@@ -132,9 +132,11 @@ module Worker (S : Serializable) = struct
       ~cmd:(Request.touch ~id)
       ~process:(Response.touch)
 
-  let release cn ~id ~priority ~delay = request_process_ignore cn
-      ~cmd:(Request.release ~id ~priority ~delay)
-      ~process:(Response.release)
+  let release cn ~id ~priority ~delay =
+    let open Exp in
+    process cn
+      ~req:(Request.release ~id ~priority ~delay)
+      ~rep:(Response.release) |> extract `Single
 
   let peek_get_job cn ~peek =
     let open Deferred.Or_error.Monad_infix in

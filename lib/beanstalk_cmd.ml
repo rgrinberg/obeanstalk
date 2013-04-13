@@ -33,6 +33,9 @@ module Command = struct
 
   let create ~name ~args = {name;args}
 
+  let create_ints ~name ~args =
+    {name; args=(args |> List.map ~f:Int.to_string)}
+
   let to_string {name; args} = String.concat ~sep:" " (name::args)
   let of_string s = 
     match String.split ~on:' ' s with
@@ -55,9 +58,8 @@ module Request = struct
   let use_tube ~tube = Single(Command.one_arg "use" tube)
 
   let put ?(delay=0) ~priority ~ttr ~bytes ~job =
-    WithJob(Command.create ~name:"put" 
-      ~args:([priority;delay;ttr;bytes] |> List.map ~f:Int.to_string),
-      job)
+    WithJob(Command.create_ints ~name:"put" 
+      ~args:[priority;delay;ttr;bytes], job)
 
   let reserve = wrap "reserve"
   let reserve_timeout ~timeout = (sp "reserve-with-timeout %d" timeout)
@@ -65,7 +67,7 @@ module Request = struct
   let delete ~id = Single(Command.one_arg "delete" (Int.to_string id))
 
   let release ~id ~priority ~delay =
-    (sp "release %d %d %d" id priority delay)
+    Single(Command.create_ints ~name:"release" ~args:[id;priority;delay])
 
   let bury ~id ~priority = 
     Single(Command.create ~name:"bury"
@@ -148,7 +150,8 @@ module Response = struct
 
   let fail_if_unequal eq s = if s = eq then `Ok else raise Parse_failed
 
-  let release = fail_if_unequal "RELEASED"
+  let release = verify_only ~is:"RELEASED"
+
   let touch = fail_if_unequal "TOUCHED"
   let kick_job = fail_if_unequal "KICKED"
 
