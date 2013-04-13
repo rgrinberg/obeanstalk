@@ -44,9 +44,12 @@ module Tube = struct
     let open Deferred.Or_error.Monad_infix in
     (recv_payload cn Response.list_tubes_any) >>| parse_response
 
-  let stats cn ~tube = request_get_yaml_dict cn 
-      ~cmd:(Request.stats_tube ~name:tube) 
-      ~resp_handler:(fun r -> `Ok (Response.stats_tube r))
+  let stats cn ~tube =
+    let open Exp in
+    process_k cn
+      ~req:(Request.stats_tube ~tube)
+      ~rep:(Response.stats_tube)
+      ~k:parse_response |> extract `WithPayload
 
   let pause cn ~tube ~delay = 
     let open Exp in
@@ -149,7 +152,7 @@ module Worker (S : Serializable) = struct
       ~process:(Response.kick_job)
 
   let stats cn ~id = request_get_yaml_dict cn ~cmd:(Request.stats_job ~id)
-      ~resp_handler:(fun resp -> `Ok(Response.stats_tube resp) )
+      ~resp_handler:(fun resp -> `Ok(Response.stats_job resp) )
 end
 
 let connect ?(port=default_port) ~host = 

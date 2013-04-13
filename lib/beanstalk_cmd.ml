@@ -72,7 +72,7 @@ module Request = struct
   let kick ~bound = (sp "kick %d" bound)
   let kick_job ~id = (sp "kick-job %d" id)
   let stats_job ~id = (sp "stats-job %d" id) (* returns YAML *)
-  let stats_tube ~name = (sp "stats-tube %s" name)
+  let stats_tube ~tube = Single(Command.one_arg "stats-tube" tube)
   let stats = "stats"
   let list_tubes = Single(Command.no_args "list-tubes")
   let list_tube_used = Single(Command.no_args "list-tube-used")
@@ -150,8 +150,11 @@ module Response = struct
   let kick = single_parse ~prefix:"KICKED" ~re:"\\d+"
       ~success_protect:(fun s -> `Kicked (Int.of_string s))
 
-  let stats_tube = single_parse ~prefix:"OK" ~re:"\\d+"
+  let stats_job = single_parse ~prefix:"OK" ~re:"\\d+"
       ~success_protect:(fun s -> `Bytes (Int.of_string s)) (* YAML *)
+
+  let stats_tube = `WithPayload (fun {Command.name; _} ->
+    verify name ~is:"OK"; (fun x -> Payload.YDict(x)))
 
   let reserve s = (`Id (failwith "TODO"), `Bytes (failwith "TODO"))
 
