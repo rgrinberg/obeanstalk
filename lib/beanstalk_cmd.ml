@@ -55,8 +55,6 @@ module Request = struct
     | Single of Command.t
     | WithJob of Command.t * string
 
-  let sp = Printf.sprintf
-
   let use_tube ~tube = Single(Command.one_arg "use" tube)
 
   let put ?(delay=0) ~priority ~ttr ~bytes ~job =
@@ -117,31 +115,7 @@ module Response = struct
   exception Parse_failed
   type with_id = string -> [`Id of int]
 
-  let group x = "\\(" ^ x ^ "\\)"
-
   let verify ~is s = if s <> is then raise Parse_failed
-
-  let single_parse ~prefix ~re ~success_protect= 
-    let rex = Str.regexp ("^" ^ prefix ^ (group re) ^ "$") in
-    (fun s -> 
-      try ignore (Str.string_match rex s 0);
-        (Str.matched_group 1 s) |> success_protect
-      with _ -> raise Parse_failed)
-
-  let tuple_parse ~prefix ~first ~second = 
-    let groups = (first |> fst |> group) ^ " " ^ (second |> fst |> group) in
-    let open Str in 
-    let rex = regexp ("^" ^ prefix ^ " " ^ groups) in
-    (fun s ->
-      try
-        ignore (string_match rex s 0);
-        ((matched_group 1 s) |> (snd first),
-         (matched_group 2 s) |> (snd second))
-      with _ -> raise Parse_failed)
-
-  let job_parse ~prefix = 
-    single_parse ~prefix ~re:"[0-9]+"
-      ~success_protect:(fun s -> `Id(Int.of_string s))
 
   let verify_only ~is = `Single(fun {Command.name;_} -> verify name ~is)
 
@@ -177,9 +151,6 @@ module Response = struct
 
   let kick_bound = `Single(fun {Command.name;args} ->
       verify name ~is:"KICKED"; `Kicked (args |> List.hd_exn |> Int.of_string))
-
-  let stats_job = single_parse ~prefix:"OK" ~re:"\\d+"
-      ~success_protect:(fun s -> `Bytes (Int.of_string s)) (* YAML *)
 
   let stats_job = `WithPayload (fun {Command.name; _} ->
       verify name ~is:"OK"; (fun x -> Payload.YDict(x)))

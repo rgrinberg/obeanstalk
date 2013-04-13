@@ -37,60 +37,52 @@ module MakeJob (S : Serializable) : Job_intf = struct
 end
 
 module Tube = struct
+  open Exp
 
   let all cn = 
-    let open Exp in
     process_k cn 
       ~req:(Request.list_tubes)
       ~rep:(Response.list_tubes_any)
       ~k:parse_response |> extract `WithPayload
 
   let stats cn ~tube =
-    let open Exp in
     process_k cn
       ~req:(Request.stats_tube ~tube)
       ~rep:(Response.stats_tube)
       ~k:parse_response |> extract `WithPayload
 
   let pause cn ~tube ~delay = 
-    let open Exp in
     process cn
       ~req:(Request.pause_tube ~tube ~delay)
       ~rep:(Response.pause_tube) |> extract `Single
 
   let watched cn = 
-    let open Exp in
     process_k cn
       ~req:(Request.list_tubes_watched)
       ~rep:(Response.list_tubes_any)
       ~k:parse_response |> extract `WithPayload
 
   let watch cn ~tube =
-    let open Exp in
     process cn
       ~req:(Request.ignore_tube ~tube)
       ~rep:(Response.ignore_tube) |> extract `Single
 
   let ignore_tube cn ~tube = 
-    let open Exp in
     process_k cn
       ~req:(Request.ignore_tube ~tube)
       ~rep:(Response.ignore_tube)
       ~k:ignore |> extract `Single
 
   let use cn ~tube = 
-    let open Exp in
     process_k cn 
       ~req:(Request.use_tube ~tube)
       ~rep:(Response.using)
       ~k:ignore |> extract `WithPayload
 
   let using cn =
-    let open Exp in
     process cn
       ~req:(Request.list_tube_used)
       ~rep:(Response.using) |> extract `Single
-
 end  
 
 module Worker (S : Serializable) = struct
