@@ -96,9 +96,9 @@ end
 module Worker (S : Serializable) = struct
   module Job = MakeJob(S)
   type t = Job.t
+  open Exp
 
   let reserve ?timeout cn = 
-    let open Exp in
     let req = match timeout with
       | None -> Request.reserve
       | Some timeout -> Request.reserve_timeout ~timeout
@@ -109,7 +109,6 @@ module Worker (S : Serializable) = struct
        |> extract `WithPayload
 
   let put cn ?delay ~priority ~ttr ~job = 
-    let open Exp in 
     let data = Job.S.serialize job in
     let bytes = Job.S.size job in
     process_k cn
@@ -119,31 +118,26 @@ module Worker (S : Serializable) = struct
     |> extract `WithPayload
 
   let bury cn ~id ~priority =
-    let open Exp in
     process cn
       ~req:(Request.bury ~id ~priority)
       ~rep:(Response.bury) |> extract `Single
 
   let delete cn ~id = 
-    let open Exp in
     process cn
       ~req:(Request.delete ~id)
       ~rep:(Response.delete) |> extract `Single
 
   let touch cn ~id =
-    let open Exp in
     process cn
       ~req:(Request.touch ~id)
       ~rep:(Response.touch) |> extract `Single
 
   let release cn ~id ~priority ~delay =
-    let open Exp in
     process cn
       ~req:(Request.release ~id ~priority ~delay)
       ~rep:(Response.release) |> extract `Single
 
   let peek_any cn ~req = 
-    let open Exp in
     process_k cn
       ~req ~rep:(Response.peek_any)
       ~k:(fun (`Id id, data) -> 
@@ -159,19 +153,16 @@ module Worker (S : Serializable) = struct
   let peek_buried cn = peek_any cn ~req:(Request.peek_buried)
 
   let kick_bound cn ~bound =
-    let open Exp in
     process cn
       ~req:(Request.kick_bound ~bound)
       ~rep:(Response.kick_bound) |> extract `Single
 
   let kick_job cn ~id =
-    let open Exp in
     process cn
       ~req:(Request.kick_job ~id)
       ~rep:(Response.kick_job) |> extract `Single
 
   let stats cn ~id = 
-    let open Exp in
     process_k cn
       ~req:(Request.stats_job ~id)
       ~rep:(Response.stats_job)
