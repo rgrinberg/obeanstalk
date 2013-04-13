@@ -46,6 +46,8 @@ module Command = struct
   (* common constructors *)
   let no_args name = {name; args=[]}
   let one_arg name arg = {name; args=[arg]}
+
+  let one_id name id = one_arg name (Int.to_string id)
 end
 
 module Request = struct
@@ -85,8 +87,9 @@ module Request = struct
   let peek_delayed = "peek-delayed"
   let peek_buried = "peek-buried"
 
-  let kick ~bound = (sp "kick %d" bound)
-  let kick_job ~id = (sp "kick-job %d" id)
+  let kick_bound ~bound = Single(Command.one_id "kick" bound)
+
+  let kick_job ~id = Single(Command.one_id "kick-job" id)
   let stats_job ~id = (sp "stats-job %d" id) (* returns YAML *)
   let stats_tube ~tube = Single(Command.one_arg "stats-tube" tube)
   let stats = "stats"
@@ -159,7 +162,7 @@ module Response = struct
 
   let touch = verify_only ~is:"TOUCHED"
 
-  let kick_job = fail_if_unequal "KICKED"
+  let kick_job = verify_only ~is:"KICKED"
 
   let watch = `Single(fun {Command.name;args} ->
       verify name ~is:"WATCHING";
@@ -171,8 +174,8 @@ module Response = struct
       ~first:("\\d+", (fun s -> `Id(Int.of_string s)))
       ~second:("\\d+",  (fun s -> `Bytes(Int.of_string s)))
 
-  let kick = single_parse ~prefix:"KICKED" ~re:"\\d+"
-      ~success_protect:(fun s -> `Kicked (Int.of_string s))
+  let kick_bound = `Single(fun {Command.name;args} ->
+    verify name ~is:"KICKED"; `Kicked (args |> List.hd_exn |> Int.of_string))
 
   let stats_job = single_parse ~prefix:"OK" ~re:"\\d+"
       ~success_protect:(fun s -> `Bytes (Int.of_string s)) (* YAML *)

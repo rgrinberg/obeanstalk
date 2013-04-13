@@ -156,13 +156,17 @@ module Worker (S : Serializable) = struct
 
   let peek_buried cn = peek_get_job cn ~peek:(Request.peek_buried)
 
-  let kick_bound cn ~bound = request_process cn
-      ~cmd:(Request.kick ~bound)
-      ~process:(Response.kick)
+  let kick_bound cn ~bound =
+    let open Exp in
+    process cn
+      ~req:(Request.kick_bound ~bound)
+      ~rep:(Response.kick_bound) |> extract `Single
 
-  let kick_job cn ~id = request_process_ignore cn
-      ~cmd:(Request.kick_job ~id)
-      ~process:(Response.kick_job)
+  let kick_job cn ~id =
+    let open Exp in
+    process cn
+      ~req:(Request.kick_job ~id)
+      ~rep:(Response.kick_job) |> extract `Single
 
   let stats cn ~id = request_get_yaml_dict cn ~cmd:(Request.stats_job ~id)
       ~resp_handler:(fun resp -> `Ok(Response.stats_job resp) )
