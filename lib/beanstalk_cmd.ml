@@ -38,7 +38,9 @@ module Command = struct
     | name::args -> {name; args}
 
   let size {args;_} = args |> List.last_exn |> Int.of_string
+  (* common constructors *)
   let no_args name = {name; args=[]}
+  let one_arg name arg = {name; args=[arg]}
 end
 
 module Request = struct
@@ -48,7 +50,8 @@ module Request = struct
 
   let sp = Printf.sprintf
 
-  let use_tube ~tube = (sp "use %s" tube)
+  let use_tube ~tube = Single(Command.one_arg "use" tube)
+
   let put ?(delay=0) ~priority ~ttr ~bytes =
     (sp "put %d %d %d %d" priority delay ttr bytes)
   let reserve = wrap "reserve"
@@ -69,9 +72,8 @@ module Request = struct
   let stats_job ~id = (sp "stats-job %d" id) (* returns YAML *)
   let stats_tube ~name = (sp "stats-tube %s" name)
   let stats = "stats"
-
   let list_tubes = Single(Command.no_args "list-tubes")
-  let list_tube_used = "list-tube-used"
+  let list_tube_used = Single(Command.no_args "list-tube-used")
   let list_tubes_watched = "list-tubes-watched"
   let quit = "quit"
   let pause_tube ~tube ~delay = (sp "pause-tube %s %d" tube delay)
@@ -119,8 +121,8 @@ module Response = struct
   let bury : with_id = job_parse ~prefix:"BURIED"
   let delete : with_id = job_parse ~prefix:"DELETED"
 
-  let using = single_parse ~prefix:"USING" ~re:".+"
-      ~success_protect:(fun s -> `Tube s)
+  let using = `Single(fun {Command.name; args} ->
+    if name <> "USING" then raise Parse_failed; `Tube (List.hd_exn args))
 
   let fail_if_unequal eq s = if s = eq then `Ok else raise Parse_failed
 

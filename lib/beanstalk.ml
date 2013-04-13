@@ -64,13 +64,17 @@ module Tube = struct
       ~cmd:(Request.ignore_tube ~tube)
       ~process:(Response.ignore_tube)
 
-  let use cn ~tube = request_process_ignore cn
-      ~cmd:(Request.use_tube ~tube)
-      ~process:(Response.using)
+  let use cn ~tube = 
+    let open Exp in
+    send cn (Request.use_tube ~tube);
+    let open Deferred.Or_error.Monad_infix in
+    (recv_single cn Response.using) >>| ignore
 
-  let using cn = request_process cn 
-      ~cmd:(Request.list_tube_used)
-      ~process:(Response.using)
+  let using cn = 
+    let open Exp in
+    send cn (Request.list_tube_used);
+    let open Deferred.Or_error.Monad_infix in
+    (recv_single cn Response.using)
 
 end  
 
