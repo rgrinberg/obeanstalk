@@ -40,9 +40,10 @@ module Tube = struct
 
   let all cn = 
     let open Exp in
-    send cn (Request.list_tubes);
-    let open Deferred.Or_error.Monad_infix in
-    (recv_payload cn Response.list_tubes_any) >>| parse_response
+    process_k cn 
+      ~req:(Request.list_tubes)
+      ~rep:(Response.list_tubes_any)
+      ~k:parse_response |> extract `WithPayload
 
   let stats cn ~tube =
     let open Exp in
@@ -113,9 +114,11 @@ module Worker (S : Serializable) = struct
        ~data ~process:(Response.put)) >>| 
     (fun (`Id id) -> Job.create ~id ~data:job)
 
-  let bury cn ~id ~priority = request_process_ignore cn
-      ~cmd:(Request.bury ~id ~priority)
-      ~process:(Response.bury)
+  let bury cn ~id ~priority =
+    let open Exp in
+    process cn
+      ~req:(Request.bury ~id ~priority)
+      ~rep:(Response.bury) |> extract `Single
 
   let delete cn ~id = request_process_ignore cn
       ~cmd:(Request.delete ~id)

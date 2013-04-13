@@ -61,7 +61,11 @@ module Request = struct
   let delete ~id = (sp "delete %d" id)
   let release ~id ~priority ~delay =
     (sp "release %d %d %d" id priority delay)
-  let bury ~id ~priority = (sp "bury %d %d" id priority)
+
+  let bury ~id ~priority = 
+    Single(Command.create ~name:"bury"
+      ~args:[Int.to_string id; Int.to_string priority])
+
   let touch ~id = (sp "touch %d" id)
   let watch ~tube = Single(Command.one_arg "watch" tube)
   let ignore_tube ~tube = Single(Command.one_arg "ignore" tube)
@@ -125,7 +129,9 @@ module Response = struct
       ~success_protect:(fun s -> `Id(Int.of_string s))
 
   let put : with_id = job_parse ~prefix:"INSERTED"
-  let bury : with_id = job_parse ~prefix:"BURIED"
+
+  let bury = `Single(fun {Command.name;_} -> verify name ~is:"BURIED")
+
   let delete : with_id = job_parse ~prefix:"DELETED"
 
   let using = `Single(fun {Command.name; args} ->
