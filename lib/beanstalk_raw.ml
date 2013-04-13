@@ -171,33 +171,22 @@ module Exp = struct
       assert (String.length buf = size);
       Deferred.Or_error.return (cmd_reader cmd buf)
 
-  (* TODO : fix the ugly *)
-  (* I have a feeling all of this extract bs can be fixed with use of GADT's
-   * but don't how to make it work exactly *)
   let process cn ~req ~rep = 
     send cn req;
     match rep with (* ghettoish *)
-    | (`Single _) as rep -> `Single (recv_single cn rep)
-    | (`WithPayload _) as rep -> `WithPayload (recv_payload cn rep)
+    | (`Single _) as rep -> recv_single cn rep
+    | (`WithPayload _) as rep -> recv_payload cn rep
 
   let process_k cn ~req ~rep ~k = (* FIXME *)
     let open Deferred.Or_error.Monad_infix in 
-    match process cn ~req ~rep with
-    | `Single x -> `Single (x >>| k)
-    | `WithPayload x -> `WithPayload (x >>| k)
-
-  let extract tag value = (* FIXME *)
-    match tag, value with
-    | `Single, (`Single x) -> x
-    | `WithPayload, (`WithPayload x) -> x
-    | _ , _ -> assert false
+    process cn ~req ~rep >>| k 
 
   open Payload
   (* a little ugly since we don't parse jobs. but that function is set
    * by the user and it seems a little clumsy to pass it around when it
    * can just be applied to the result just as conveniently *)
   let parse_response : type a . a Payload.t -> a = function
-    | YList x -> Yaml.to_list x
-    | YDict x -> Yaml.to_dict x
-    | Job x -> x 
+  | YList x -> Yaml.to_list x
+  | YDict x -> Yaml.to_dict x
+  | Job x -> x 
 end
