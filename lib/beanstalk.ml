@@ -70,11 +70,10 @@ module Tube = struct
     let open Deferred.Or_error.Monad_infix in
     (recv_single cn Response.using) >>| ignore
 
-  let using cn = 
-    let open Exp in
-    send cn (Request.list_tube_used);
-    let open Deferred.Or_error.Monad_infix in
-    (recv_single cn Response.using)
+  let using cn =
+    let open Exp in process cn
+    ~req:(Request.list_tube_used)
+    ~rep:(Response.using) |> extract `Single
 
 end  
 
