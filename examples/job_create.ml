@@ -15,12 +15,13 @@ let job_ready = Ivar.create ()
 let () = 
   Ivar.read job_ready >>> fun bs ->
   S.Worker.reserve bs >>> begin fun job -> 
-    match job with
-    | Result.Ok job ->
-      let data = S.Worker.Job.data job in
-      pf "Received job (%d): %s" (S.Job.id job) data
-    | Result.Error _ -> pe "uh oh";
-    shutdown 0
+    begin match job with
+      | Result.Ok job ->
+        let data = S.Worker.Job.data job in
+        pf "Received job (%d): '%s'" (S.Job.id job) data;
+      | Result.Error _ -> pe "uh oh";
+    end;
+    upon (after (sec 0.2)) (fun _ -> shutdown 0)
   end
 
 let () = 
