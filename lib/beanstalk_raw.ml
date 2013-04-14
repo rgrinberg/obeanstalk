@@ -14,15 +14,11 @@ module Writer = struct
     Writer.write ?pos ?len writer str;
     Writer.write writer "\r\n"
 end
+
 module Reader = struct
   include Reader
-  let read_rn t = 
-    (Reader.read_line t) >>| function
-    (* we will live with this slight inefficiency for now *)
-    | `Ok res -> `Ok(String.(sub ~pos:0 ~len:(res |> length |> pred) res))
-    | `Eof -> `Eof
   let read_rn_with_exn t = 
-    read_rn t >>| function
+    read_line t >>| function
     | `Ok res -> Or_error.try_with (fun () -> (raise_if_error res; res))
     | `Eof -> failwith "unexpected eof"
 end
@@ -35,7 +31,7 @@ let default_tube_name = "default"
 let send (BS (_,w))  c = c |> wrap |> (Writer.write w)
 
 let recv (BS (r, _)) =
-  Reader.read_rn r >>| function
+  Reader.read_line r >>| function
   | `Ok res ->
     Or_error.try_with (fun () -> (raise_if_error res; res))
   | `Eof -> failwith "unexpected eof"
@@ -90,7 +86,7 @@ module Exp = struct
     let cmd = Command.of_string str_cmd in
     let size = Command.size cmd in 
     let open Deferred.Monad_infix in
-    (Reader.read_rn r) >>= function
+    (Reader.read_line r) >>= function
     | `Eof -> assert false
     | `Ok buf -> 
       assert (String.length buf = size);
