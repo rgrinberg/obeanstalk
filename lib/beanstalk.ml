@@ -34,6 +34,9 @@ module Job : Job_intf = struct
   let create ~data ~id = {data ; id}
 end
 
+(* a lot of function return Or_error.t but can actually throw exceptions
+ * as well. This is wrong according to core's conventions and should be fixed *)
+
 module Tube = struct
   open Exp
 

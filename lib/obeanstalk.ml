@@ -8,4 +8,5 @@ module Stringly = struct
     let size = String.length
   end)
   module Worker : module type of W with type s := string = W
+  module Job = Worker.Job
 end
