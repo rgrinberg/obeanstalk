@@ -40,33 +40,6 @@ let recv (BS (r, _)) =
     Or_error.try_with (fun () -> (raise_if_error res; res))
   | `Eof -> failwith "unexpected eof"
 
-(* TODO : get rid of the extra string allocation *)
-let read_len (BS (r, _)) ~len = 
-  let buf = String.create (len+2) in
-  (Reader.really_read r buf) >>| function
-  | `Eof _ -> assert false
-  | `Ok -> buf |> String.sub ~pos:0 ~len
-
-let send_with_data (BS (_, w)) ~cmd ~data = 
-  let (cmd, data) = (wrap cmd, wrap data) in
-  (cmd ^ data) |> Writer.write w
-
-let send_batch t ~cmds = cmds |> List.iter ~f:(fun cmd -> send t cmd)
-
-let request bs ~cmd = send bs cmd; recv bs
-
-let request_pair bs ~cmd = 
-  send bs cmd;
-  let open Deferred.Monad_infix in
-  (recv bs) >>= (fun r1 -> recv bs >>| (fun r2 -> (r1, r2)))
-
-let request_batch bs ~cmds = send_batch bs ~cmds; recv bs
-
-let request_pair_batch bs ~cmds =
-  send_batch bs ~cmds;
-  let open Deferred.Or_error.Monad_infix in
-  (recv bs) >>= (fun r1 -> recv bs >>| (fun r2 -> (r1, r2)))
-
 let log_output (BS (r, _)) = 
   let rec loop () =
     upon (Reader.read_line r) (function
@@ -93,7 +66,6 @@ let health_check ~host ~port =
         else raise (Unexpected_response (res))
       | `Eof -> failwith "Unexpected eof")
   end
-
 
 (* Standalone request routines, independent of almost all of the rest of the code
  * Uses the new {Request,Response,Command} module stuff for somewhat
