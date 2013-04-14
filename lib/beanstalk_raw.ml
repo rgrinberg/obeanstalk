@@ -45,8 +45,7 @@ let log_output (BS (r, _)) =
 
 let connect ~host ~port = 
   let where = Tcp.to_host_and_port host port in
-  Tcp.connect where >>| (fun (_,reader, writer) ->
-    BS (reader, writer))
+  Tcp.connect where >>| (fun (_,reader, writer) -> BS (reader, writer))
 
 let connect_host ~host = 
   connect ~port:default_port ~host

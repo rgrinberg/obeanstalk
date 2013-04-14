@@ -8,7 +8,6 @@ module S = Obeanstalk.Stringly
 let pe = print_endline
 let pf = printf
 
-
 let bs = O.connect ~port:11300 ~host:"127.0.0.1"
 
 let () = 

@@ -4,7 +4,8 @@ open Async.Std
 type conn
 type conf = (string, string) List.Assoc.t
 
-val connect : ?port:int -> host:string -> conn Deferred.t
+val connect : port:int -> host:string -> conn Deferred.t
+val quit : conn -> unit Deferred.t
 
 module Tube : sig
   open Deferred (* for the correct result type *)

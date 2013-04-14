@@ -158,6 +158,9 @@ module Worker (S : Serializable) = struct
       ~k:parse_response 
 end
 
-let connect ?(port=default_port) ~host = 
+let connect ~port ~host = 
   let where = Tcp.to_host_and_port host port in
   Tcp.connect where >>| (fun (_,reader, writer) -> (BS (reader, writer)))
+
+let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
+  Writer.close w >>= (fun _ -> Reader.close r)
