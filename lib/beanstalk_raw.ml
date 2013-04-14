@@ -97,7 +97,7 @@ module Exp = struct
     | (`Single _) as rep -> recv_single cn rep
     | (`WithPayload _) as rep -> recv_payload cn rep
 
-  let process_k cn ~req ~rep ~k = (* FIXME *)
+  let process_k cn ~req ~rep ~k =
     let open Deferred.Or_error.Monad_infix in 
     process cn ~req ~rep >>| k 
 

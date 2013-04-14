@@ -26,7 +26,7 @@ let bsd_running () =
 let create_job () = 
   let open Obeanstalk in
   let open Obeanstalk.Stringly in
-  let job_load = Worker.Job.S.deserialize "sheni" in
+  let job_load = "sheni" in
   let bs = connect ~port ~host in 
   bs >>> begin fun bs ->
     let open Deferred.Or_error.Monad_infix in 

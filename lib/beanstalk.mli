@@ -7,6 +7,13 @@ type conf = (string, string) List.Assoc.t
 val connect : port:int -> host:string -> conn Deferred.t
 val quit : conn -> unit Deferred.t
 
+module type Serializable = sig
+  type t
+  val serialize : t -> string
+  val deserialize : string -> t
+  val size : t -> int
+end
+
 module Tube : sig
   open Deferred (* for the correct result type *)
   (** common operations *)
@@ -22,31 +29,24 @@ module Tube : sig
   val using : conn -> [`Tube of string] Or_error.t
 end
 
-module type Serializable = sig
-  type t
-  val serialize : t -> string
-  val deserialize : string -> t
-  val size : t -> int
-end
-
 module type Job_intf = sig
-  module S : Serializable
-  type t
-  val id : t -> int
-  val data : t -> S.t
-  val create : data:S.t -> id:int -> t
+  type 'a t
+  val id : 'a t -> int
+  val data : 'a t -> 'a
+  val create : data: 'a -> id:int -> 'a t
 end
 
 module Worker : functor (S : Serializable) -> sig
   module Job : Job_intf
   open Deferred (* for the correct result type *)
-  type t = Job.t
+  type s = S.t
+  type t = s Job.t
   (** reserving jobs *)
   val reserve : ?timeout:int -> conn -> t Or_error.t
   (** job operations *)
 
   val put : conn -> ?delay:int -> priority:int -> ttr:int -> 
-                    job:Job.S.t -> t Or_error.t
+                    job:S.t -> t Or_error.t
 
   val bury : conn -> id:int -> priority:int -> unit Or_error.t
   val delete : conn -> id:int -> unit Or_error.t

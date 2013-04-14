@@ -15,7 +15,7 @@ let () =
   S.Worker.reserve bs >>> (fun job -> 
     match job with
     | Result.Ok job ->
-      let data = job |> S.Worker.Job.data |> S.Worker.Job.S.serialize in
+      let data = S.Worker.Job.data job in
       pf "Received job (%d): %s" (S.Worker.Job.id job) data
     | Result.Error _ -> pe "uh oh")
 
@@ -23,7 +23,7 @@ let () =
   bs >>> fun bs -> 
   pe "connected to beanstalkd server";
   S.Worker.put bs ~delay:0 ~priority:2 ~ttr:10 
-    ~job:(S.Worker.Job.S.deserialize "shen sheni") >>> fun job_e ->
+    ~job:("shen sheni") >>> fun job_e ->
   pe "Received result";
   begin match job_e with
     | Result.Ok job -> pf "Created job with id: %d\n" (S.Worker.Job.id job)

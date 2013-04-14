@@ -18,18 +18,16 @@ module type Serializable = sig
 end
 
 module type Job_intf = sig
-  module S : Serializable
-  type t
-  val id : t -> int
-  val data : t -> S.t
-  val create : data:S.t -> id:int -> t
+  type 'a t
+  val id : 'a t -> int
+  val data : 'a t -> 'a
+  val create : data: 'a -> id:int -> 'a t
 end
 
-module MakeJob (S : Serializable) : Job_intf = struct
-  module S = S
-  type t = {
+module Job : Job_intf = struct
+  type 'a t = {
     id : int;
-    data : S.t;
+    data : 'a;
   }
   let id {id;_} = id
   let data {data;_} = data
@@ -86,8 +84,9 @@ module Tube = struct
 end  
 
 module Worker (S : Serializable) = struct
-  module Job = MakeJob(S)
-  type t = Job.t
+  module Job = Job
+  type s = S.t
+  type t = s Job.t
   open Exp
 
   let reserve ?timeout cn = 
@@ -97,11 +96,11 @@ module Worker (S : Serializable) = struct
     in process_k cn
       ~req ~rep:(Response.reserve)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(data |> parse_response |> Job.S.deserialize))
+        Job.create ~id ~data:(data |> parse_response |> S.deserialize))
 
   let put cn ?delay ~priority ~ttr ~job = 
-    let data = Job.S.serialize job in
-    let bytes = Job.S.size job in
+    let data = S.serialize job in
+    let bytes = S.size job in
     process_k cn
       ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:data)
       ~rep:(Response.put)
@@ -131,7 +130,7 @@ module Worker (S : Serializable) = struct
     process_k cn
       ~req ~rep:(Response.peek_any)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(data |> parse_response |> Job.S.deserialize))
+        Job.create ~id ~data:(data |> parse_response |> S.deserialize))
 
   let peek cn ~id = peek_any cn ~req:(Request.peek ~id)
 
