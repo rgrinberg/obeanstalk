@@ -6,6 +6,9 @@ build:
 configure:
 	obuild configure --enable-tests
 
+job_create:
+	./dist/build/job_create/job_create
+
 all:
 	make build
 	make test

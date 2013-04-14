@@ -94,53 +94,6 @@ let health_check ~host ~port =
       | `Eof -> failwith "Unexpected eof")
   end
 
-let request_with ~f ~process = 
-  (f ()) >>| (fun e -> 
-    let open Or_error.Monad_infix in
-    e >>= (fun resp -> Response.(try_with process ~resp)))
-
-let request_process cn ~cmd ~process = 
-  request_with ~f:(fun e -> request cn ~cmd) ~process
-
-let request_process_ignore cn ~cmd ~process = 
-  let open Deferred.Or_error.Monad_infix in 
-  (request_process cn ~cmd ~process) >>| (fun _ -> ())
-
-let request_with_job cn ~cmd ~data ~process =
-  let f = (fun () -> send_with_data cn ~cmd ~data; recv cn) in
-  request_with ~f ~process
-
-let request_with_len : conn -> cmd:string -> _ = 
-  fun cn ~cmd ~length ->
-    let open Deferred.Or_error.Monad_infix in
-    (request cn ~cmd) >>= fun resp ->
-    match length resp with
-    | `Error -> failwith "TODO"
-    | `Ok (`Bytes len) ->
-      let open Deferred.Monad_infix in
-      (* TODO : Clean this up *)
-      (read_len cn ~len) >>= (fun job -> job |> Deferred.Or_error.return)
-
-let request_get_yaml_dict cn ~cmd ~resp_handler = 
-  let open Deferred.Or_error.Monad_infix in 
-  (request_with_len cn ~cmd ~length:resp_handler) >>| Yaml.to_dict
-
-let request_get_yaml_list cn ~cmd ~resp_handler = 
-  let open Deferred.Or_error.Monad_infix in 
-  (request_with_len cn ~cmd ~length:resp_handler) >>| Yaml.to_list
-
-let request_get_job cn ~cmd ~resp_handler =
-  (* TODO : this handling is a little big ugly. Fix later *)
-  let id = ref None in
-  let length s = match resp_handler s with
-    | `Error -> failwith "TODO"
-    | `Ok (`Id i, len) -> (id := (Some i); `Ok(len)) in
-  let open Deferred.Or_error.Monad_infix in 
-  (request_with_len cn ~cmd ~length) >>| (fun job -> object
-    method job = job
-    method id = Option.value_exn (!id)
-  end)
-
 
 (* Standalone request routines, independent of almost all of the rest of the code
  * Uses the new {Request,Response,Command} module stuff for somewhat

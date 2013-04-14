@@ -22,3 +22,8 @@ Test test_pure
   MainIs: test_pure.ml
   BuildDepends: oUnit, obeanstalk, core
   rundir: lib_test
+
+Executable job_create
+  main-is: job_create.ml
+  src-dir: examples
+  build-deps: core, obeanstalk
