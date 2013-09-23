@@ -11,7 +11,7 @@ let split_exn s ~on =
 (* just enough to parse whatever we get from obeanstalk *)
 let to_dict s = 
   match String.split_lines s with
-  | [] -> [] (* first element should be header *)
+  | [] -> []
   | _::lines -> (* I assume first line is the header *)
     lines |> List.filter_map ~f:(fun l -> 
       try let (k,v) = split_exn ~on:':' l in Some (k, String.strip v)
