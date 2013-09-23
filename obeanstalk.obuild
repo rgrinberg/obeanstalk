@@ -27,3 +27,9 @@ executable job_create
   main-is: job_create.ml
   src-dir: examples
   build-deps: core, obeanstalk
+
+executable obean
+  main-is: obean.ml
+  pp: camlp4o
+  src-dir: lib
+  build-deps: obeanstalk
