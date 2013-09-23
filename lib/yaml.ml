@@ -10,7 +10,7 @@ let split_exn s ~on =
 
 (* just enough to parse whatever we get from obeanstalk *)
 let to_dict s = 
-  match String.split s ~on:'\n' with
+  match String.split_lines s with
   | [] -> [] (* first element should be header *)
   | _::lines -> (* I assume first line is the header *)
     lines |> List.filter_map ~f:(fun l -> 
@@ -19,7 +19,7 @@ let to_dict s =
       with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
 
 let to_list s = 
-  match String. split s ~on:'\n' with
+  match String.split_lines s with
   | [] -> []
   | _::lines ->
     lines |> List.filter_map ~f:(fun l ->
