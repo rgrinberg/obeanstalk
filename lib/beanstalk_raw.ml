@@ -39,8 +39,8 @@ let recv (BS (r, _)) =
 let log_output (BS (r, _)) = 
   let rec loop () =
     upon (Reader.read_line r) (function
-      | `Ok query  -> print_endline query; loop ()
-      | `Eof -> print_endline "DONE")
+        | `Ok query  -> print_endline query; loop ()
+        | `Eof -> print_endline "DONE")
   in loop ()
 
 let connect ~host ~port = 
@@ -54,12 +54,12 @@ let connect_host ~host =
 let health_check ~host ~port =
   Monitor.try_with ~extract_exn:true begin fun () ->
     connect ~port ~host >>= (fun ((BS (r, w)) as bs) ->
-      send bs "stats";
-      Reader.read_line r >>| function
-      | `Ok res ->
-        if (String.sub ~pos:0 ~len: 2 res = "OK") then `Ok
-        else raise (Unexpected_response (res))
-      | `Eof -> failwith "Unexpected eof")
+        send bs "stats";
+        Reader.read_line r >>| function
+        | `Ok res ->
+          if (String.sub ~pos:0 ~len: 2 res = "OK") then `Ok
+          else raise (Unexpected_response (res))
+        | `Eof -> failwith "Unexpected eof")
   end
 
 (* Standalone request routines, independent of almost all of the rest of the code
@@ -106,7 +106,7 @@ module Exp = struct
    * by the user and it seems a little clumsy to pass it around when it
    * can just be applied to the result just as conveniently *)
   let parse_response : type a . a Payload.t -> a = function
-  | YList x -> Yaml.to_list x
-  | YDict x -> Yaml.to_dict x
-  | Job x -> x 
+    | YList x -> Yaml.to_list x
+    | YDict x -> Yaml.to_dict x
+    | Job x -> x 
 end
