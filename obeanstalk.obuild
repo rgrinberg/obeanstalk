@@ -1,12 +1,12 @@
 Name:        obeanstalk
 Version:     0.0.1
-Synopsis:    Async beanstalkd client for OCaml
+Synopsis:    beanstalkd client for OCaml
 Authors:     Rudi Grinberg
 License:     LGPL-3.0 with OCaml linking exception
 obuild-ver:  1
 
 Library obeanstalk
-  BuildDepends: core, async, sexplib, sexplib.syntax, str
+  BuildDepends: core,, sexplib, sexplib.syntax, str
   Modules: Obeanstalk, Beanstalk, Beanstalk_raw, Beanstalk_cmd, Beanstalk_exc, Yaml
   pp: camlp4o
   Path: lib
