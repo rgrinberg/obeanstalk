@@ -1,4 +1,5 @@
-dist/**
 META
 *.mllib
 tags
+*.native
+_build/**

@@ -1,0 +1,4 @@
+true: syntax(camlp4o)
+true: package(core,sexplib,sexplib.syntax,async,async_unix)
+true: thread,debug
+<lib> : include
