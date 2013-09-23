@@ -1,0 +1,4 @@
+dist/**
+META
+*.mllib
+tags
