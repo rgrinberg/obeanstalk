@@ -153,7 +153,7 @@ module Response = struct
       verify name ~is:"KICKED"; `Kicked (args |> List.hd_exn |> Int.of_string))
 
   let stats_job = `WithPayload (fun {Command.name; _} ->
-      verify name ~is:"OK"; (fun x -> Payload.YDict(x)))
+      verify name ~is:"OK"; (fun x -> Payload.YDict x))
 
   let stats_tube = stats_job
 
