@@ -1,5 +1,6 @@
 open Core.Std
 open Async.Std
+open Async_unix.Async_print
 
 let readme () = "Example:
 obean blah blah"
@@ -19,7 +20,7 @@ let command =
                 List.iter s ~f:print_endline
               end
             | Result.Error _ -> print_endline "uh oh" end;
-          Clock.after (sec 2.0)
+          return ()
         end)
 
 let () = Exn.handle_uncaught ~exit:true (fun () -> Command.run command)
