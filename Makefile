@@ -16,6 +16,6 @@ all:
 	make test
 
 test:
-	obuild test --output
+	./test_pure.native
 	
 .PHONY: build all build default
