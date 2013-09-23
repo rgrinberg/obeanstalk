@@ -4,8 +4,6 @@ open Async.Std
 let readme () = "Example:
 obean blah blah"
 
-let pp x = Log.Global.debug "%s\n" x
-
 let command =
   Command.async_basic ~summary:"Test client for beanstalkd" ~readme
     Command.Spec.(
