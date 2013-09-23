@@ -17,10 +17,18 @@ end
 
 module Reader = struct
   include Reader
+  (** read line, throw exception if on beanstalkd error *)
   let read_rn_with_exn t = 
     read_line t >>| function
     | `Ok res -> Or_error.try_with (fun () -> (raise_if_error res; res))
     | `Eof -> failwith "unexpected eof"
+
+  (** read a string of len [len] otherwise pass the error *)
+  let read_buffer r ~len =
+    let buf = String.create len in
+    really_read r ~len buf >>| function
+      | `Ok -> `Ok buf
+      | `Eof x -> `Eof x
 end
 
 type conn = BS of (Reader.t * Writer.t)
@@ -85,11 +93,9 @@ module Exp = struct
     let cmd = Command.of_string str_cmd in
     let size = Command.size cmd in 
     let open Deferred.Monad_infix in
-    (Reader.read_line r) >>= function
-    | `Eof -> assert false
-    | `Ok buf -> 
-      assert (String.length buf = size);
-      Deferred.Or_error.return (cmd_reader cmd buf)
+    Reader.read_buffer r ~len:size >>= function
+    | `Ok buf -> Deferred.Or_error.return (cmd_reader cmd buf)
+    | `Eof _ -> assert false
 
   let process cn ~req ~rep = 
     send cn req;
