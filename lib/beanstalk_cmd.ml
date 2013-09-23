@@ -77,24 +77,24 @@ module Request = struct
 
   let touch ~id = Single (Command.one_arg "touch" (Int.to_string id))
 
-  let watch ~tube = Single(Command.one_arg "watch" tube)
+  let watch ~tube       = Single(Command.one_arg "watch" tube)
   let ignore_tube ~tube = Single(Command.one_arg "ignore" tube)
 
-  let peek ~id = Single(Command.one_id "peek" id)
-  let peek_ready = Single(Command.no_args "peek-ready")
+  let peek ~id     = Single(Command.one_id "peek" id)
+  let peek_ready   = Single(Command.no_args "peek-ready")
   let peek_delayed = Single(Command.no_args "peek-delayed")
-  let peek_buried = Single(Command.no_args "peek-buried")
+  let peek_buried  = Single(Command.no_args "peek-buried")
 
   let kick_bound ~bound = Single(Command.one_id "kick" bound)
 
-  let kick_job ~id = Single(Command.one_id "kick-job" id)
-  let stats_job ~id = Single(Command.one_id "stats-job" id) (* returns YAML *)
-  let stats_tube ~tube = Single(Command.one_arg "stats-tube" tube)
-  let stats = "stats"
-  let list_tubes = Single(Command.no_args "list-tubes")
-  let list_tube_used = Single(Command.no_args "list-tube-used")
+  let kick_job ~id       = Single(Command.one_id "kick-job" id)
+  let stats_job ~id      = Single(Command.one_id "stats-job" id)
+  let stats_tube ~tube   = Single(Command.one_arg "stats-tube" tube)
+  let stats              = "stats"
+  let list_tubes         = Single(Command.no_args "list-tubes")
+  let list_tube_used     = Single(Command.no_args "list-tube-used")
   let list_tubes_watched = Single(Command.no_args "list-tubes-watched")
-  let quit = "quit"
+  let quit               = "quit"
 
   let pause_tube ~tube ~delay =
     Single(Command.create ~name:"pause-tube" 
