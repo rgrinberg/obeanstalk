@@ -54,8 +54,8 @@ let test_fixtures =
       "create job" >:: create_job
     ]
 
-let _ = run_test_tt ~verbose:true test_fixtures
+(*let _ = run_test_tt ~verbose:true test_fixtures*)
 
-let _ = (after (sec 2.)) >>> (fun _ -> shutdown 0)
+(*let _ = (after (sec 2.)) >>> (fun _ -> shutdown 0)*)
 
-let () = never_returns (Scheduler.go ())
+(*let () = never_returns (Scheduler.go ())*)
