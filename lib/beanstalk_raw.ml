@@ -70,8 +70,8 @@ let health_check ~host ~port =
         | `Eof -> failwith "Unexpected eof")
   end
 
-(* Standalone request routines, independent of almost all of the rest of the code
- * Uses the new {Request,Response,Command} module stuff for somewhat
+(* Standalone request routines, independent of almost all of the rest of the
+ * code Uses the new {Request,Response,Command} module stuff for somewhat
  * cleaner and more typesafe handling. *)
 module Exp = struct
   let send (BS (r,w)) req = 
