@@ -44,6 +44,11 @@ pid: 13297"
 let sample_yaml2 = "---
 - default"
 
+(* this was a bug *)
+let sample_yaml3 = "---
+- default
+"
+
 let id x = x
 
 let test_split () =
@@ -61,12 +66,17 @@ let test_yaml_list () =
   let yaml = Yaml.to_list sample_yaml2 in
   assert_equal (List.hd_exn yaml) "default" ~printer:id
 
+let test_list_bug () = 
+  let yaml = Yaml.to_list sample_yaml2 in
+  assert_equal (List.hd_exn yaml) "default" ~printer:id
+
 let test_fixtures =
   "test yaml parsing" >:::
     [
       "test split" >:: test_split;
       "sample yaml dict" >:: test_yaml_dict;
-      "sample yaml list" >:: test_yaml_list
+      "sample yaml list" >:: test_yaml_list;
+      "sample list bug" >:: test_list_bug;
     ]
 
 let _ = run_test_tt ~verbose:true test_fixtures
