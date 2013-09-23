@@ -37,17 +37,17 @@ module Command = struct
     {name; args=(args |> List.map ~f:Int.to_string)}
 
   let to_string {name; args} = String.concat ~sep:" " (name::args)
+
   let of_string s = 
     match String.split ~on:' ' s with
-    | [] -> assert false
+    | [] -> invalid_arg ("Commnad.of_string: " ^ s)
     | name::args -> {name; args}
 
   let size {args;_} = args |> List.last_exn |> Int.of_string
   (* common constructors *)
-  let no_args name = {name; args=[]}
+  let no_args name     = {name; args=[]}
   let one_arg name arg = {name; args=[arg]}
-
-  let one_id name id = one_arg name (Int.to_string id)
+  let one_id name id   = one_arg name (Int.to_string id)
 end
 
 module Request = struct
@@ -163,7 +163,7 @@ module Response = struct
       fun x -> (`Id id, Payload.Job(x)))
 
   let list_tubes_any = `WithPayload (fun {Command.name ;_} ->
-      verify name ~is:"OK"; (fun x -> Payload.YList(x)))
+      verify name ~is:"OK"; (fun x -> Payload.YList x))
 
   let pause_tube = `Single (fun {Command.name; _} ->
       verify name ~is:"PAUSED")
