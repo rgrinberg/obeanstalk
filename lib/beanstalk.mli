@@ -2,7 +2,7 @@ open Core.Std
 open Async.Std
 
 type conn
-type conf = (string, string) List.Assoc.t
+type conf = (string * string) list
 
 val connect : port:int -> host:string -> conn Deferred.t
 val quit : conn -> unit Deferred.t
