@@ -1,5 +1,6 @@
 S lib
 S lib_test
-B dist/build/lib-obeanstalk/
+B _build/lib
+B _build/lib_test
 PKG core
 PKG async
