@@ -20,15 +20,15 @@ module Reader = struct
   (** read line, throw exception if on beanstalkd error *)
   let read_rn_with_exn t = 
     read_line t >>| function
-    | `Ok res -> Or_error.try_with (fun () -> (raise_if_error res; res))
+    | `Ok res -> (raise_if_error res; res)
     | `Eof -> failwith "unexpected eof"
 
   (** read a string of len [len] otherwise pass the error *)
   let read_buffer r ~len =
     let buf = String.create len in
     really_read r ~len buf >>| function
-      | `Ok -> `Ok buf
-      | `Eof x -> `Eof x
+    | `Ok -> `Ok buf
+    | `Eof x -> `Eof x
 end
 
 type conn = BS of (Reader.t * Writer.t)
@@ -40,8 +40,7 @@ let send (BS (_,w))  c = c |> wrap |> (Writer.write w)
 
 let recv (BS (r, _)) =
   Reader.read_line r >>| function
-  | `Ok res ->
-    Or_error.try_with (fun () -> (raise_if_error res; res))
+  | `Ok res -> (raise_if_error res; res)
   | `Eof -> failwith "unexpected eof"
 
 let log_output (BS (r, _)) = 
@@ -83,19 +82,16 @@ module Exp = struct
       end
 
   let recv_single (BS (r, _)) (`Single cmd_reader) = 
-    let open Deferred.Or_error.Monad_infix in 
     (Reader.read_rn_with_exn r) >>|
     fun s -> s |> Command.of_string |> cmd_reader
 
   let recv_payload (BS (r, _)) (`WithPayload cmd_reader) = 
-    let open Deferred.Or_error.Monad_infix in 
     (Reader.read_rn_with_exn r) >>= fun str_cmd ->
     let cmd = Command.of_string str_cmd in
     let size = Command.size cmd in 
-    let open Deferred.Monad_infix in
     Reader.read_buffer r ~len:size >>= function
-    | `Ok buf -> Deferred.Or_error.return (cmd_reader cmd buf)
-    | `Eof _ -> assert false
+    | `Ok buf -> return (cmd_reader cmd buf)
+    | `Eof _ -> assert false (* TODO *)
 
   let process cn ~req ~rep = 
     send cn req;
@@ -103,9 +99,7 @@ module Exp = struct
     | (`Single _) as rep -> recv_single cn rep
     | (`WithPayload _) as rep -> recv_payload cn rep
 
-  let process_k cn ~req ~rep ~k =
-    let open Deferred.Or_error.Monad_infix in 
-    process cn ~req ~rep >>| k 
+  let process_k cn ~req ~rep ~k = process cn ~req ~rep >>| k 
 
   open Payload
   (* a little ugly since we don't parse jobs. but that function is set
