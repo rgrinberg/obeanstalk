@@ -5,7 +5,7 @@ open Async_unix.Async_print
 let readme () = "Example:
 obean blah blah"
 
-let conn () = Obeanstalk.connect ~port:11300 ~host:"127.0.0.1"
+let conn () = Obeanstalk.default_connection ()
 
 let print_tubes conn =
   conn >>= (fun bs -> Obeanstalk.Tube.all bs)
@@ -33,8 +33,7 @@ let tube =
       empty
       +> flag "-s" (optional_with_default "default" string)
           ~doc:"stats of a tube"
-      +> flag "-l" (no_arg)
-          ~doc:"list tubes"
+      +> flag "-l" (no_arg) ~doc:"list tubes"
     ) (fun tube list_tubes () ->
         if list_tubes then () |> conn |> print_tubes
         else print_stats (conn ()) ~tube)

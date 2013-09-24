@@ -1,10 +1,13 @@
 open Core.Std
 open Async.Std
+(** Async API for beanstalkd *)
 
 type conn
-type conf = (string * string) list
 
 val connect : port:int -> host:string -> conn Deferred.t
+
+val default_connection : ?port:int -> ?host:string -> unit -> conn Deferred.t
+
 val quit : conn -> unit Deferred.t
 
 module type Serializable = sig
@@ -18,7 +21,7 @@ module Tube : sig
   open Deferred (* for the correct result type *)
   (** common operations *)
   val all : conn -> string list Or_error.t
-  val stats : conn -> tube:string  -> conf Or_error.t
+  val stats : conn -> tube:string  -> (string * string) list Or_error.t
   val pause : conn -> tube:string -> delay:int -> unit Or_error.t
   (** consumers *)
   val watched : conn -> string list Or_error.t
@@ -44,7 +47,6 @@ module Worker : functor (S : Serializable) -> sig
   (** reserving jobs *)
   val reserve : ?timeout:int -> conn -> t Or_error.t
   (** job operations *)
-
   val put : conn -> ?delay:int -> priority:int -> ttr:int -> 
                     job:S.t -> t Or_error.t
 
@@ -61,6 +63,6 @@ module Worker : functor (S : Serializable) -> sig
   val kick_bound : conn -> bound:int -> [ `Kicked of int ] Or_error.t
   val kick_job : conn -> id:int -> unit Or_error.t
 
-  val stats : conn -> id:int -> conf Or_error.t
+  val stats : conn -> id:int -> (string * string) list Or_error.t
 end
 
