@@ -17,5 +17,8 @@ all:
 
 test:
 	./test_pure.native
+
+clean:
+	$(OCAMLBUILD) -clean
 	
 .PHONY: build all build default
