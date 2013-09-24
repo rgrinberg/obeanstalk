@@ -22,9 +22,8 @@ let print_tubes conn =
 let print_stats conn ~tube =
   conn >>= (fun bs -> Obeanstalk.Tube.stats bs ~tube) >>= begin fun stats->
     (match stats with
-    | Result.Ok s -> 
-        s |> List.iter ~f:(fun (key, value) -> printf "%s = %s\n" key value)
-    | Result.Error _ -> print_endline "uh oh");
+     | Result.Ok s -> s |> List.iter ~f:(fun (k, v) -> printf "%s = %s\n" k v)
+     | Result.Error _ -> print_endline "uh oh");
     return ()
   end
 
@@ -37,11 +36,11 @@ let tube =
       +> flag "-l" (no_arg)
           ~doc:"list tubes"
     ) (fun tube list_tubes () ->
-      if list_tubes then () |> conn |> print_tubes
-      else print_stats (conn ()) ~tube)
+        if list_tubes then () |> conn |> print_tubes
+        else print_stats (conn ()) ~tube)
 
 let command =
   Command.group ~summary:"beanstalkd command line tool"
-  ["tube", tube]
+    ["tube", tube]
 
 let () = Exn.handle_uncaught ~exit:true (fun () -> Command.run command)
