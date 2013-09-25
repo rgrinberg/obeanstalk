@@ -5,7 +5,10 @@ open Async_unix.Async_print
 let readme () = "Example:
 obean blah blah"
 
-let conn () = Obeanstalk.default_connection ()
+let conn () = 
+  Monitor.try_with (fun () -> Obeanstalk.default_connection ()) >>= function
+    | Result.Ok x -> return x
+    | Result.Error _ -> (print_endline "Failed to connect" ;exit 0)
 
 let print_tubes conn =
   conn >>= (fun bs -> Obeanstalk.Tube.all bs)
