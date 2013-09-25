@@ -2,9 +2,6 @@ open Core.Std
 open Async.Std
 open Async_unix.Async_print
 
-let readme () = "Example:
-obean blah blah"
-
 let conn () = 
   Monitor.try_with (fun () -> Obeanstalk.default_connection ()) >>= function
     | Result.Ok x -> return x
