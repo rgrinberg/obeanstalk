@@ -7,18 +7,6 @@ obean blah blah"
 
 let conn () = Obeanstalk.default_connection ()
 
-(*let print_tubes conn =*)
-  (*conn >>= (fun bs -> Obeanstalk.Tube.all bs)*)
-  (*>>= begin fun res ->*)
-    (*begin match res with*)
-      (*| Result.Ok s -> begin*)
-          (*print_endline "tubes:";*)
-          (*List.iter s ~f:print_endline*)
-        (*end*)
-      (*| Result.Error _ -> print_endline "uh oh" end;*)
-    (*return ()*)
-  (*end*)
-
 let print_tubes conn =
   conn >>= (fun bs -> Obeanstalk.Tube.all bs)
   >>= begin fun s ->
