@@ -29,8 +29,6 @@ module Command = struct
     args : string list; 
   } with sexp
 
-  type 'a reader = t -> 'a
-
   let create ~name ~args = {name;args}
 
   let create_ints ~name ~args =
