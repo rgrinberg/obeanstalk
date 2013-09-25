@@ -158,7 +158,4 @@ module Response = struct
 
   let pause_tube = `Single (fun {Command.name; _} ->
       verify name ~is:"PAUSED")
-
-  let try_with t ~resp = Or_error.try_with (fun () -> (t resp))
-  let try_with_ignore t ~resp = Or_error.try_with (fun () -> ignore (t resp))
 end
