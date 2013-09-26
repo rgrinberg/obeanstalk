@@ -34,8 +34,7 @@ module Job : sig
 end
 
 module Worker : functor (S : Serializable) -> sig
-  type s = S.t
-  type t = s Job.t
+  type t = S.t Job.t
   (** reserving jobs *)
   val reserve : ?timeout:int -> conn -> t Deferred.t
   (** job operations *)

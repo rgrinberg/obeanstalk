@@ -39,13 +39,12 @@ module Tube : sig
 end
 
 module Worker : functor (S : Serializable) -> sig
-  type s = S.t
-  type t = s Job.t
+  type t = S.t Job.t
 
   val reserve : ?timeout:int -> conn -> t Deferred.t
   (** job operations *)
   val put : conn -> ?delay:int ->
-    priority:int -> ttr:int -> job:s -> t Deferred.t
+    priority:int -> ttr:int -> job:S.t -> t Deferred.t
 
   val bury : conn -> id:int -> priority:int -> unit Deferred.t
   val delete : conn -> id:int -> unit Deferred.t
