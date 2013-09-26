@@ -1,5 +1,4 @@
 open Core.Std
-open Async.Std
 
 let wrap x = x ^ "\r\n"
 
