@@ -34,22 +34,22 @@ module Job : sig
 end
 
 module Worker : functor (S : Serializable) -> sig
-  type t = S.t Job.t
+  type job = S.t Job.t
   (** reserving jobs *)
-  val reserve : ?timeout:int -> conn -> t Deferred.t
+  val reserve : ?timeout:int -> conn -> job Deferred.t
   (** job operations *)
   val put : conn -> ?delay:int -> priority:int -> ttr:int -> 
-                    job:S.t -> t Deferred.t
+                    job:S.t -> job Deferred.t
 
   val bury : conn -> id:int -> priority:int -> unit Deferred.t
   val delete : conn -> id:int -> unit Deferred.t
   val touch : conn -> id:int -> unit Deferred.t
   val release : conn -> id:int -> priority:int -> delay:int ->  unit Deferred.t
   (** peeks *)
-  val peek : conn -> id:int -> t Deferred.t
-  val peek_ready : conn -> t Deferred.t
-  val peek_delayed : conn -> t Deferred.t
-  val peek_buried : conn -> t Deferred.t
+  val peek : conn -> id:int -> job Deferred.t
+  val peek_ready : conn -> job Deferred.t
+  val peek_delayed : conn -> job Deferred.t
+  val peek_buried : conn -> job Deferred.t
   (** kicks *)
   val kick_bound : conn -> bound:int -> [ `Kicked of int ] Deferred.t
   val kick_job : conn -> id:int -> unit Deferred.t

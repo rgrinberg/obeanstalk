@@ -78,7 +78,7 @@ end
 
 module Worker (S : Serializable) = struct
   module Job = Job
-  type t = S.t Job.t
+  type job = S.t Job.t
   open Exp
 
   let reserve ?timeout cn = 
