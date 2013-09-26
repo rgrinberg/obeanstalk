@@ -19,12 +19,15 @@ module type Serializable = sig
 end
 
 module Tube : sig
+  (** common operations *)
   val all : conn -> string list Deferred.t
   val stats : conn -> tube:string -> (string * string) list Deferred.t
   val pause : conn -> tube:string -> delay:int -> unit Deferred.t
+  (** consumers *)
   val watched : conn -> string list Deferred.t
   val watch : conn -> tube:string -> [ `Watching of int ] Deferred.t
   val ignore_tube : conn -> tube:string -> unit Deferred.t
+  (** producers *)
   val use : conn -> tube:string -> unit Deferred.t
   val using : conn -> [ `Tube of string ] Deferred.t
 end
@@ -49,7 +52,7 @@ module Worker : functor (S : Serializable) -> sig
   type t = s Job.t
 
   val reserve : ?timeout:int -> conn -> t Deferred.t
-
+  (** job operations *)
   val put :
     conn ->
     ?delay:int ->
@@ -60,16 +63,15 @@ module Worker : functor (S : Serializable) -> sig
   val touch : conn -> id:int -> unit Deferred.t
 
   val release : conn -> id:int -> priority:int -> delay:int -> unit Deferred.t
-
+  (** peeks *)
   val peek : conn -> id:int -> t Deferred.t
   val peek_ready : conn -> t Deferred.t
   val peek_delayed : conn -> t Deferred.t
   val peek_buried : conn -> t Deferred.t
 
+  (** kicks *)
   val kick_bound : conn -> bound:int -> [ `Kicked of int ] Deferred.t
-
   val kick_job : conn -> id:int -> unit Deferred.t
-
   val stats : conn -> id:int -> (string * string) list Deferred.t
 end
 

@@ -1,6 +1,5 @@
 open Core.Std
 open Async.Std
-(** Async API for beanstalkd *)
 
 type conn
 
@@ -18,15 +17,12 @@ module type Serializable = sig
 end
 
 module Tube : sig
-  (** common operations *)
   val all : conn -> string list Deferred.t
   val stats : conn -> tube:string  -> (string * string) list Deferred.t
   val pause : conn -> tube:string -> delay:int -> unit Deferred.t
-  (** consumers *)
   val watched : conn -> string list Deferred.t
   val watch : conn -> tube:string -> [`Watching of int] Deferred.t
   val ignore_tube : conn -> tube:string -> unit Deferred.t
-  (** producers *)
   val use : conn -> tube:string -> unit Deferred.t
   val using : conn -> [`Tube of string] Deferred.t
 end
