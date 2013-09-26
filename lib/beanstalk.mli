@@ -27,15 +27,13 @@ module Tube : sig
   val using : conn -> [`Tube of string] Deferred.t
 end
 
-module type Job_intf = sig
+module Job : sig
   type 'a t
   val id : 'a t -> int
   val data : 'a t -> 'a
-  val create : data: 'a -> id:int -> 'a t
 end
 
 module Worker : functor (S : Serializable) -> sig
-  module Job : Job_intf
   type s = S.t
   type t = s Job.t
   (** reserving jobs *)

@@ -18,6 +18,12 @@ module type Serializable = sig
   val size : t -> int
 end
 
+module Job : sig
+  type 'a t
+  val id : 'a t -> int
+  val data : 'a t -> 'a
+end
+
 module Tube : sig
   (** common operations *)
   val all : conn -> string list Deferred.t
@@ -32,22 +38,7 @@ module Tube : sig
   val using : conn -> [ `Tube of string ] Deferred.t
 end
 
-module type Job_intf = sig
-  type 'a t
-  val id : 'a t -> int
-  val data : 'a t -> 'a
-  val create : data:'a -> id:int -> 'a t
-end
-
 module Worker : functor (S : Serializable) -> sig
-
-  module Job : sig
-    type 'a t = 'a Beanstalk.Worker(S).Job.t
-    val id : 'a t -> int
-    val data : 'a t -> 'a
-    val create : data:'a -> id:int -> 'a t
-  end
-
   type s = S.t
   type t = s Job.t
 
@@ -75,8 +66,6 @@ end
 
 module Stringly : sig
   module Worker : sig
-    module Job : Beanstalk.Job_intf
-
     type t = string Job.t
 
     val reserve : ?timeout:int -> conn -> t Deferred.t
@@ -102,12 +91,5 @@ module Stringly : sig
     val kick_job : conn -> id:int -> unit Deferred.t
 
     val stats : conn -> id:int -> (string * string) list Deferred.t
-  end
-
-  module Job : sig
-    type 'a t = 'a Worker.Job.t
-    val id : 'a t -> int
-    val data : 'a t -> 'a
-    val create : data:'a -> id:int -> 'a t
   end
 end
