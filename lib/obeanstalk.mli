@@ -53,9 +53,7 @@ module Worker : functor (S : Serializable) -> sig
 
   val reserve : ?timeout:int -> conn -> t Deferred.t
   (** job operations *)
-  val put :
-    conn ->
-    ?delay:int ->
+  val put : conn -> ?delay:int ->
     priority:int -> ttr:int -> job:s -> t Deferred.t
 
   val bury : conn -> id:int -> priority:int -> unit Deferred.t
