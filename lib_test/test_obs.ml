@@ -32,15 +32,15 @@ let create_job () =
     let put_id = ref (-100) in
     (Worker.put bs ?delay:None ~priority:1 ~ttr:10 ~job:job_load) >>|
     begin fun job ->
-      assert_equal (Worker.Job.data job) job_load;
-      assert_bool "id exists" ((Worker.Job.id job) > 0);
-      put_id := (Worker.Job.id job);
+      assert_equal (Job.data job) job_load;
+      assert_bool "id exists" ((Job.id job) > 0);
+      put_id := (Job.id job);
       pf "created job\n";
       return ()
     end >>= (fun _ ->
       (Worker.reserve bs ~timeout:2) >>| begin fun job ->
-        assert_equal (Worker.Job.data job) job_load;
-        assert_equal (Worker.Job.id job) (!put_id);
+        assert_equal (Job.data job) job_load;
+        assert_equal (Job.id job) (!put_id);
         pf "reserved job...\n";
         return ()
       end) |> ignore

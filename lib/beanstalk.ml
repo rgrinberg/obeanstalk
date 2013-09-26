@@ -14,14 +14,7 @@ module type Serializable = sig
   val size : t -> int
 end
 
-module type Job_intf = sig
-  type 'a t
-  val id : 'a t -> int
-  val data : 'a t -> 'a
-  val create : data: 'a -> id:int -> 'a t
-end
-
-module Job : Job_intf = struct
+module Job = struct
   type 'a t = {
     id : int;
     data : 'a;
