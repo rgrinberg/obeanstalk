@@ -36,6 +36,7 @@ module type Job_intf = sig
   type 'a t
   val id : 'a t -> int
   val data : 'a t -> 'a
+  val create : data:'a -> id:int -> 'a t
 end
 
 module Worker : functor (S : Serializable) -> sig
@@ -44,6 +45,7 @@ module Worker : functor (S : Serializable) -> sig
     type 'a t = 'a Beanstalk.Worker(S).Job.t
     val id : 'a t -> int
     val data : 'a t -> 'a
+    val create : data:'a -> id:int -> 'a t
   end
 
   type s = S.t
