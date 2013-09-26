@@ -29,7 +29,6 @@ let create_job () =
   let job_load = "sheni" in
   let bs = connect ~port ~host in 
   bs >>> begin fun bs ->
-    let open Deferred.Or_error.Monad_infix in 
     let put_id = ref (-100) in
     (Worker.put bs ?delay:None ~priority:1 ~ttr:10 ~job:job_load) >>|
     begin fun job ->
