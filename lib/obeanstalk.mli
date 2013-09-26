@@ -65,31 +65,6 @@ module Worker : functor (S : Serializable) -> sig
 end
 
 module Stringly : sig
-  module Worker : sig
-    type t = string Job.t
-
-    val reserve : ?timeout:int -> conn -> t Deferred.t
-
-    val put : conn -> ?delay:int ->
-      priority:int -> ttr:int -> job:string -> t Deferred.t
-
-    val bury : conn -> id:int -> priority:int -> unit Deferred.t
-
-    val delete : conn -> id:int -> unit Deferred.t
-    val touch : conn -> id:int -> unit Deferred.t
-
-    val release : conn ->
-      id:int -> priority:int -> delay:int -> unit Deferred.t
-
-    val peek : conn -> id:int -> t Deferred.t
-    val peek_ready : conn -> t Deferred.t
-    val peek_delayed : conn -> t Deferred.t
-    val peek_buried : conn -> t Deferred.t
-
-    val kick_bound : conn -> bound:int -> [ `Kicked of int ] Deferred.t
-
-    val kick_job : conn -> id:int -> unit Deferred.t
-
-    val stats : conn -> id:int -> (string * string) list Deferred.t
-  end
+  module S : Serializable with type t = string
+  module Worker : module type of (Worker(S))
 end
