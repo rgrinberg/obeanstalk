@@ -90,13 +90,13 @@ module Worker (S : Serializable) = struct
       ~k:(fun (`Id id, data) -> 
         Job.create ~id ~data:(data |> parse_response |> S.deserialize))
 
-  let put cn ?delay ~priority ~ttr ~job = 
-    let data = S.serialize job in
-    let bytes = S.size job in
+  let put cn ?delay ~priority ~ttr ~data = 
+    let serialized = S.serialize data in
+    let bytes = S.size data in
     process_k cn
-      ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:data)
+      ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:serialized)
       ~rep:(Response.put)
-      ~k:(fun (`Id id) -> Job.create ~id ~data:job) (* fix stupid naming *)
+      ~k:(fun (`Id id) -> Job.create ~id ~data) (* fix stupid naming *)
 
   let bury cn ~id ~priority =
     process cn
