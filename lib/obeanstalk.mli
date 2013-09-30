@@ -5,9 +5,9 @@ open Async.Std
 
 type conn
 
-val connect : port:int -> host:string -> conn Deferred.t
+val connect : host:string -> port:int -> conn Deferred.t
 
-val default_connection : ?port:int -> ?host:string -> unit -> conn Deferred.t
+val default_connection : ?host:string -> ?port:int -> unit -> conn Deferred.t
 
 val quit : conn -> unit Deferred.t
 

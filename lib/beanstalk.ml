@@ -149,11 +149,9 @@ module Worker (S : Serializable) = struct
       ~k:parse_response 
 end
 
-let connect ~port ~host = 
-  let where = Tcp.to_host_and_port host port in
-  Tcp.connect where >>| (fun (_,reader, writer) -> (BS (reader, writer)))
+let connect = Beanstalk_raw.connect
 
-let default_connection ?(port=11300) ?(host="localhost") () =
-  connect ~port ~host
+let default_connection ?(host="localhost") ?(port=11300) () =
+  connect ~host ~port
 
 let quit = Beanstalk_raw.quit
