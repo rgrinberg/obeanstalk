@@ -1,7 +1,7 @@
 open Core.Std
 open Async.Std
-open Beanstalk_exc
-open Beanstalk_cmd
+module Prot = Beanstalk_cmd
+module Exc  = Beanstalk_exc
 
 (** This is the extremely primitive interface to beanstalkd instance it 
  *  almost nothing but sending and receiving commands and translating errors.
@@ -20,7 +20,7 @@ module Reader = struct
   (** read line, throw exception if on beanstalkd error *)
   let read_rn_with_exn t = 
     read_line t >>| function
-    | `Ok res -> (raise_if_error res; res)
+    | `Ok res -> (Exc.raise_if_error res; res)
     | `Eof -> failwith "unexpected eof"
 
   (** read a string of len [len] otherwise pass the error *)
@@ -36,11 +36,11 @@ type conn = BS of Reader.t * Writer.t
 let default_port = 11300
 let default_tube_name = "default"
 
-let send (BS (_,w))  c = c |> wrap |> (Writer.write w)
+let send (BS (_,w))  c = c |> Prot.wrap |> (Writer.write w)
 
 let recv (BS (r, _)) =
   Reader.read_line r >>| function
-  | `Ok res -> (raise_if_error res; res)
+  | `Ok res -> (Exc.raise_if_error res; res)
   | `Eof -> failwith "unexpected eof"
 
 let connect ~host ~port = 
@@ -61,30 +61,30 @@ let health_check ~host ~port =
         Reader.read_line r >>| function
         | `Ok res ->
           if (String.sub ~pos:0 ~len: 2 res = "OK") then `Ok
-          else raise (Unexpected_response (res))
+          else raise (Exc.Unexpected_response (res))
         | `Eof -> failwith "Unexpected eof")
   end
 
 (* Standalone request routines, independent of almost all of the rest of the
- * code Uses the new {Request,Response,Command} module stuff for somewhat
+ * code Uses the new {Request,Response,Prot.Command} module stuff for somewhat
  * cleaner and more typesafe handling. *)
 module Exp = struct
   let send (BS (r,w)) req = 
-    let open Request in match req with
-    | Single cmd -> Writer.write_rn w (Command.to_string cmd)
+    let open Prot.Request in match req with
+    | Single cmd -> Writer.write_rn w (Prot.Command.to_string cmd)
     | WithJob (cmd, load) -> begin
-        Writer.write_rn w (Command.to_string cmd);
+        Writer.write_rn w (Prot.Command.to_string cmd);
         Writer.write_rn w load
       end
 
   let recv_single (BS (r, _)) (`Single cmd_reader) = 
     (Reader.read_rn_with_exn r) >>|
-    fun s -> s |> Command.of_string |> cmd_reader
+    fun s -> s |> Prot.Command.of_string |> cmd_reader
 
   let recv_payload (BS (r, _)) (`WithPayload cmd_reader) = 
     (Reader.read_rn_with_exn r) >>= fun str_cmd ->
-    let cmd = Command.of_string str_cmd in
-    let size = Command.size cmd in 
+    let cmd = Prot.Command.of_string str_cmd in
+    let size = Prot.Command.size cmd in 
     Reader.read_buffer r ~len:size >>= function
     | `Ok buf -> return (cmd_reader cmd buf)
     | `Eof _ -> assert false (* TODO *)
@@ -97,11 +97,11 @@ module Exp = struct
 
   let process_k cn ~req ~rep ~k = process cn ~req ~rep >>| k 
 
-  open Payload
+  open Prot.Payload
   (* a little ugly since we don't parse jobs. but that function is set
    * by the user and it seems a little clumsy to pass it around when it
    * can just be applied to the result just as conveniently *)
-  let parse_response : type a . a Payload.t -> a = function
+  let parse_response : type a . a Prot.Payload.t -> a = function
     | YList x -> Yaml.to_list x
     | YDict x -> Yaml.to_dict x
     | Job x -> x 
