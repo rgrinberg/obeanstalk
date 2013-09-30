@@ -1,6 +1,7 @@
 NAME = obeanstalk
 OCAMLBUILD = ocamlbuild -use-ocamlfind
-TARGETS = lib/obean.native lib_test/test_pure.native lib_test/test_obs.native
+TARGETS = lib/obean.native lib_test/test_pure.native lib_test/test_obs.native \
+		  examples/job_create.native
 
 default: all
 

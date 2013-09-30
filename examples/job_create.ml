@@ -15,26 +15,19 @@ let job_ready = Ivar.create ()
 let () = 
   Ivar.read job_ready >>> fun bs ->
   S.Worker.reserve bs >>> begin fun job -> 
-    begin match job with
-      | Result.Ok job ->
-        let data = S.Worker.Job.data job in
-        pf "Received job (%d): '%s'" (S.Job.id job) data;
-      | Result.Error _ -> pe "uh oh";
-    end;
+    let data = O.Job.data job in
+    pf "Received job (%d): '%s'" (O.Job.id job) data;
     upon (after (sec 0.2)) (fun _ -> shutdown 0)
   end
 
 let () = 
   bs >>> fun bs -> 
   pe "connected to beanstalkd server";
-  S.Worker.put bs ~delay:0 ~priority:2 ~ttr:10 
-    ~job:"shen sheni" >>> fun job_e ->
-  pe "Received result";
-  begin match job_e with
-    | Result.Ok job -> pf "Created job with id: %d\n" (S.Worker.Job.id job)
-    | Result.Error e -> pe "uh oh"
-  end;
-  Ivar.fill job_ready bs
+  (S.Worker.put bs ~delay:0 ~priority:2 ~ttr:10 
+     ~data:"shen sheni") >>> (fun job_e ->
+      pe "Received result";
+      pf "Created job with id: %d\n" (O.Job.id job_e);
+      Ivar.fill job_ready bs)
 
 let () = never_returns (Scheduler.go ())
 
