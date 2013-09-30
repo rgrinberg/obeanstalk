@@ -149,9 +149,6 @@ module Worker (S : Serializable) = struct
       ~k:parse_response 
 end
 
-let connect = Beanstalk_raw.connect
-
-let default_connection ?(host="localhost") ?(port=11300) () =
-  connect ~host ~port
-
-let quit = Beanstalk_raw.quit
+let connect            = Beanstalk_raw.connect
+let default_connection = Beanstalk_raw.default_connection
+let quit               = Beanstalk_raw.quit
