@@ -31,7 +31,7 @@ module Reader = struct
     | `Eof x -> `Eof x
 end
 
-type conn = BS of (Reader.t * Writer.t)
+type conn = BS of Reader.t * Writer.t
 
 let default_port = 11300
 let default_tube_name = "default"
