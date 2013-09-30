@@ -62,8 +62,3 @@ module Worker : functor (S : Serializable) -> sig
   val kick_job : conn -> id:int -> unit Deferred.t
   val stats : conn -> id:int -> (string * string) list Deferred.t
 end
-
-module Stringly : sig
-  module S : Serializable with type t = string
-  module Worker : module type of (Worker(S))
-end
