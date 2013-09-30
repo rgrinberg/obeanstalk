@@ -50,6 +50,9 @@ let connect ~host ~port =
 let connect_host ~host = 
   connect ~port:default_port ~host
 
+let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
+  Writer.close w >>= (fun _ -> Reader.close r)
+
 (* independent call from everything else, mostly a sanity check *)
 let health_check ~host ~port =
   Monitor.try_with ~extract_exn:true begin fun () ->

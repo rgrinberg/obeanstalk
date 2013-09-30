@@ -156,5 +156,4 @@ let connect ~port ~host =
 let default_connection ?(port=11300) ?(host="localhost") () =
   connect ~port ~host
 
-let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
-  Writer.close w >>= (fun _ -> Reader.close r)
+let quit = Beanstalk_raw.quit
