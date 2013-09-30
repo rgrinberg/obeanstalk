@@ -24,9 +24,6 @@ module Job = struct
   let create ~data ~id = {data ; id}
 end
 
-(* a lot of function return Or_error.t but can actually throw exceptions
- * as well. This is wrong according to core's conventions and should be fixed *)
-
 module Tube = struct
   open Beanstalk_raw
 
@@ -96,7 +93,7 @@ module Worker (S : Serializable) = struct
     process_k cn
       ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:serialized)
       ~rep:(Response.put)
-      ~k:(fun (`Id id) -> Job.create ~id ~data) (* fix stupid naming *)
+      ~k:(fun (`Id id) -> Job.create ~id ~data)
 
   let bury cn ~id ~priority =
     process cn

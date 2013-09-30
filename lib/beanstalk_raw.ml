@@ -80,7 +80,7 @@ let recv_payload (BS (r, _)) (`WithPayload cmd_reader) =
 
 let process cn ~req ~rep = 
   send cn req;
-  match rep with (* ghettoish *)
+  match rep with
   | (`Single _) as rep -> recv_single cn rep
   | (`WithPayload _) as rep -> recv_payload cn rep
 
