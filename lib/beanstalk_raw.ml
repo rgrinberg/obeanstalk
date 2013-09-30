@@ -58,44 +58,39 @@ let health_check ~host ~port =
         | `Eof -> failwith "Unexpected eof")
   end
 
-(* Standalone request routines, independent of almost all of the rest of the
- * code Uses the new {Request,Response,Prot.Command} module stuff for somewhat
- * cleaner and more typesafe handling. *)
-module Exp = struct
-  let send (BS (r,w)) req = 
-    let open Prot.Request in match req with
-    | Single cmd -> Writer.write_rn w (Prot.Command.to_string cmd)
-    | WithJob (cmd, load) -> begin
-        Writer.write_rn w (Prot.Command.to_string cmd);
-        Writer.write_rn w load
-      end
+let send (BS (r,w)) req = 
+  let open Prot.Request in match req with
+  | Single cmd -> Writer.write_rn w (Prot.Command.to_string cmd)
+  | WithJob (cmd, load) -> begin
+      Writer.write_rn w (Prot.Command.to_string cmd);
+      Writer.write_rn w load
+    end
 
-  let recv_single (BS (r, _)) (`Single cmd_reader) = 
-    (Reader.read_rn_with_exn r) >>|
-    fun s -> s |> Prot.Command.of_string |> cmd_reader
+let recv_single (BS (r, _)) (`Single cmd_reader) = 
+  (Reader.read_rn_with_exn r) >>|
+  fun s -> s |> Prot.Command.of_string |> cmd_reader
 
-  let recv_payload (BS (r, _)) (`WithPayload cmd_reader) = 
-    (Reader.read_rn_with_exn r) >>= fun str_cmd ->
-    let cmd = Prot.Command.of_string str_cmd in
-    let size = Prot.Command.size cmd in 
-    Reader.read_buffer r ~len:size >>= function
-    | `Ok buf -> return (cmd_reader cmd buf)
-    | `Eof _ -> assert false (* TODO *)
+let recv_payload (BS (r, _)) (`WithPayload cmd_reader) = 
+  (Reader.read_rn_with_exn r) >>= fun str_cmd ->
+  let cmd = Prot.Command.of_string str_cmd in
+  let size = Prot.Command.size cmd in 
+  Reader.read_buffer r ~len:size >>= function
+  | `Ok buf -> return (cmd_reader cmd buf)
+  | `Eof _ -> assert false (* TODO *)
 
-  let process cn ~req ~rep = 
-    send cn req;
-    match rep with (* ghettoish *)
-    | (`Single _) as rep -> recv_single cn rep
-    | (`WithPayload _) as rep -> recv_payload cn rep
+let process cn ~req ~rep = 
+  send cn req;
+  match rep with (* ghettoish *)
+  | (`Single _) as rep -> recv_single cn rep
+  | (`WithPayload _) as rep -> recv_payload cn rep
 
-  let process_k cn ~req ~rep ~k = process cn ~req ~rep >>| k 
+let process_k cn ~req ~rep ~k = process cn ~req ~rep >>| k 
 
-  open Prot.Payload
-  (* a little ugly since we don't parse jobs. but that function is set
-   * by the user and it seems a little clumsy to pass it around when it
-   * can just be applied to the result just as conveniently *)
-  let parse_response : type a . a Prot.Payload.t -> a = function
-    | YList x -> Yaml.to_list x
-    | YDict x -> Yaml.to_dict x
-    | Job x -> x 
-end
+open Prot.Payload
+(* a little ugly since we don't parse jobs. but that function is set
+  * by the user and it seems a little clumsy to pass it around when it
+  * can just be applied to the result just as conveniently *)
+let parse_response : type a . a Prot.Payload.t -> a = function
+  | YList x -> Yaml.to_list x
+  | YDict x -> Yaml.to_dict x
+  | Job x -> x 

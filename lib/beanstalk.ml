@@ -28,7 +28,7 @@ end
  * as well. This is wrong according to core's conventions and should be fixed *)
 
 module Tube = struct
-  open Exp
+  open Beanstalk_raw
 
   let all cn = 
     process_k cn 
@@ -79,7 +79,7 @@ end
 module Worker (S : Serializable) = struct
   module Job = Job
   type job = S.t Job.t
-  open Exp
+  open Beanstalk_raw
 
   let reserve ?timeout cn = 
     let req = match timeout with
