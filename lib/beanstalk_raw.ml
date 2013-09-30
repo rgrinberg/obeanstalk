@@ -36,13 +36,6 @@ type conn = BS of Reader.t * Writer.t
 let default_port = 11300
 let default_tube_name = "default"
 
-let send (BS (_,w))  c = c |> Prot.wrap |> (Writer.write w)
-
-let recv (BS (r, _)) =
-  Reader.read_line r >>| function
-  | `Ok res -> (Exc.raise_if_error res; res)
-  | `Eof -> failwith "unexpected eof"
-
 let connect ~host ~port = 
   let where = Tcp.to_host_and_port host port in
   Tcp.connect where >>| (fun (_,reader, writer) -> BS (reader, writer))
@@ -57,7 +50,7 @@ let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
 let health_check ~host ~port =
   Monitor.try_with ~extract_exn:true begin fun () ->
     connect ~port ~host >>= (fun ((BS (r, w)) as bs) ->
-        send bs "stats";
+        "stats" |> Prot.wrap |> Writer.write w;
         Reader.read_line r >>| function
         | `Ok res ->
           if (String.sub ~pos:0 ~len: 2 res = "OK") then `Ok

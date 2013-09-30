@@ -6,8 +6,6 @@ type conn = BS of Reader.t * Writer.t
 val default_port : int
 
 val default_tube_name : string
-val send : conn -> string -> unit
-val recv : conn -> string Deferred.t
 val connect : host:string -> port:int -> conn Deferred.t
 val connect_host : host:string -> conn Deferred.t
 val quit : conn -> unit Deferred.t
