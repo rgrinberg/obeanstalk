@@ -40,9 +40,6 @@ let connect ~host ~port =
   let where = Tcp.to_host_and_port host port in
   Tcp.connect where >>| (fun (_,reader, writer) -> BS (reader, writer))
 
-let connect_host ~host = 
-  connect ~port:default_port ~host
-
 let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
   Writer.close w >>= (fun _ -> Reader.close r)
 
