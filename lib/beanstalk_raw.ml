@@ -49,7 +49,7 @@ let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
 (* independent call from everything else, mostly a sanity check *)
 let health_check ~host ~port =
   Monitor.try_with ~extract_exn:true begin fun () ->
-    connect ~port ~host >>= (fun ((BS (r, w)) as bs) ->
+    connect ~port ~host >>= (fun (BS (r, w)) ->
         "stats" |> Prot.wrap |> Writer.write w;
         Reader.read_line r >>| function
         | `Ok res ->
