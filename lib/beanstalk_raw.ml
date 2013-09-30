@@ -43,13 +43,6 @@ let recv (BS (r, _)) =
   | `Ok res -> (raise_if_error res; res)
   | `Eof -> failwith "unexpected eof"
 
-let log_output (BS (r, _)) = 
-  let rec loop () =
-    upon (Reader.read_line r) (function
-        | `Ok query  -> print_endline query; loop ()
-        | `Eof -> print_endline "DONE")
-  in loop ()
-
 let connect ~host ~port = 
   let where = Tcp.to_host_and_port host port in
   Tcp.connect where >>| (fun (_,reader, writer) -> BS (reader, writer))

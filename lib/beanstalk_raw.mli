@@ -8,7 +8,6 @@ val default_port : int
 val default_tube_name : string
 val send : conn -> string -> unit
 val recv : conn -> string Deferred.t
-val log_output : conn -> unit
 val connect : host:string -> port:int -> conn Deferred.t
 val connect_host : host:string -> conn Deferred.t
 
