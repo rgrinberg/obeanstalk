@@ -67,7 +67,6 @@ module Tube = struct
 end  
 
 module Worker = struct
-  type job = Job.t
   open Beanstalk_raw
 
   let reserve ?timeout cn = 
