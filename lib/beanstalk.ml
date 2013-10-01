@@ -15,9 +15,9 @@ module type Serializable = sig
 end
 
 module Job = struct
-  type 'a t = {
+  type t = {
     id : int;
-    data : 'a;
+    data : string;
   }
   let id {id;_} = id
   let data {data;_} = data
@@ -73,9 +73,8 @@ module Tube = struct
       ~rep:(Response.using) 
 end  
 
-module Worker (S : Serializable) = struct
-  module Job = Job
-  type job = S.t Job.t
+module Worker = struct
+  type job = Job.t
   open Beanstalk_raw
 
   let reserve ?timeout cn = 
@@ -85,13 +84,12 @@ module Worker (S : Serializable) = struct
     in process_k cn
       ~req ~rep:(Response.reserve)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(data |> parse_response |> S.deserialize))
+        Job.create ~id ~data:(data |> parse_response))
 
   let put cn ?delay ~priority ~ttr ~data = 
-    let serialized = S.serialize data in
-    let bytes = S.size data in
+    let bytes = String.length data in
     process_k cn
-      ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:serialized)
+      ~req:(Request.put ?delay ~priority ~ttr ~bytes ~job:data)
       ~rep:(Response.put)
       ~k:(fun (`Id id) -> Job.create ~id ~data)
 
@@ -119,7 +117,7 @@ module Worker (S : Serializable) = struct
     process_k cn
       ~req ~rep:(Response.peek_any)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(data |> parse_response |> S.deserialize))
+        Job.create ~id ~data:(data |> parse_response))
 
   let peek cn ~id = peek_any cn ~req:(Request.peek ~id)
 

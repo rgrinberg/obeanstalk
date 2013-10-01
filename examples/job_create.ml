@@ -3,7 +3,7 @@ open Async.Std
 open Async_unix.Async_print
 
 module O = Obeanstalk
-module S = Obeanstalk.Stringly
+module S = O
 
 let pe = print_endline
 let pf = printf
