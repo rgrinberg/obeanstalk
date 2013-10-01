@@ -1,10 +1,6 @@
 open Core.Std
 open Async.Std
 
-open Beanstalk_exc
-open Beanstalk_cmd
-open Beanstalk_raw
-
 type conn = Beanstalk_raw.conn
 
 module Job = struct
@@ -19,6 +15,7 @@ end
 
 module Tube = struct
   open Beanstalk_raw
+  open Beanstalk_cmd
 
   let all cn = 
     process_k cn 
@@ -68,6 +65,7 @@ end
 
 module Worker = struct
   open Beanstalk_raw
+  open Beanstalk_cmd
 
   let reserve ?timeout cn = 
     let req = match timeout with
