@@ -76,7 +76,7 @@ module Worker = struct
     in process_k cn
       ~req ~rep:(Response.reserve)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(data |> parse_response))
+        Job.create ~id ~data:(parse_response data))
 
   let put cn ?delay ~priority ~ttr ~data = 
     let bytes = String.length data in
@@ -109,7 +109,7 @@ module Worker = struct
     process_k cn
       ~req ~rep:(Response.peek_any)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(data |> parse_response))
+        Job.create ~id ~data:(parse_response data))
 
   let peek cn ~id = peek_any cn ~req:(Request.peek ~id)
 
