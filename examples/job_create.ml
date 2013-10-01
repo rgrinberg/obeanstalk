@@ -2,7 +2,7 @@ open Core.Std
 open Async.Std
 open Async_unix.Async_print
 
-module O = Obeanstalk
+module O = Beanstalk
 module S = O
 
 let pe = print_endline

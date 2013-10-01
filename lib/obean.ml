@@ -3,19 +3,19 @@ open Async.Std
 open Async_unix.Async_print
 
 let conn () = 
-  Monitor.try_with (fun () -> Obeanstalk.default_connection ()) >>= function
+  Monitor.try_with (fun () -> Beanstalk.default_connection ()) >>= function
     | Result.Ok x -> return x
     | Result.Error _ -> (print_endline "Failed to connect" ;exit 0)
 
 let print_tubes conn =
-  conn >>= (fun bs -> Obeanstalk.Tube.all bs)
+  conn >>= (fun bs -> Beanstalk.Tube.all bs)
   >>= begin fun s ->
     List.iter s ~f:print_endline;
     return ()
   end
 
 let print_stats conn ~tube =
-  conn >>= (fun bs -> Obeanstalk.Tube.stats bs ~tube) >>= begin fun stats->
+  conn >>= (fun bs -> Beanstalk.Tube.stats bs ~tube) >>= begin fun stats->
     stats |> List.iter ~f:(fun (k, v) -> printf "%s = %s\n" k v);
     return ()
   end

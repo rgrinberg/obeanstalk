@@ -24,7 +24,7 @@ let bsd_running () =
   end
 
 let create_job () = 
-  let open Obeanstalk in
+  let open Beanstalk in
   let job_load = "sheni" in
   let bs = connect ~port ~host in 
   bs >>> begin fun bs ->
