@@ -7,13 +7,6 @@ open Beanstalk_raw
 
 type conn = Beanstalk_raw.conn
 
-module type Serializable = sig
-  type t
-  val serialize : t -> string
-  val deserialize : string -> t
-  val size : t -> int
-end
-
 module Job = struct
   type t = {
     id : int;
