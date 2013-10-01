@@ -23,12 +23,14 @@ module Reader = struct
     | `Ok res -> (Exc.raise_if_error res; res)
     | `Eof -> failwith "unexpected eof"
 
-  (** read a string of len [len] otherwise pass the error *)
-  let read_buffer r ~len =
+  (** read a string of len [len] otherwise pass the error. drop \r\n
+   * after reading [len] bytes*)
+  (* TODO make this more efficeint/better error handling *)
+  let read_buffer_drop_rn r ~len =
     let buf = String.create len in
-    really_read r ~len buf >>| function
-    | `Ok -> `Ok buf
-    | `Eof x -> `Eof x
+    really_read r ~len buf >>= function
+    | `Ok -> really_read r ~len:2 (String.create 2) >>| (fun _ -> `Ok buf)
+    | `Eof x -> return (`Eof x)
 end
 
 type conn = BS of Reader.t * Writer.t
@@ -74,7 +76,7 @@ let recv_payload (BS (r, _)) (`WithPayload cmd_reader) =
   (Reader.read_rn_with_exn r) >>= fun str_cmd ->
   let cmd = Prot.Command.of_string str_cmd in
   let size = Prot.Command.size cmd in 
-  Reader.read_buffer r ~len:size >>= function
+  Reader.read_buffer_drop_rn r ~len:size >>= function
   | `Ok buf -> return (cmd_reader cmd buf)
   | `Eof _ -> assert false (* TODO *)
 
