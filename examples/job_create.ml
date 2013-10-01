@@ -2,16 +2,22 @@ open Core.Std
 open Async.Std
 open Async_unix.Async_print
 
-let bs = Beanstalk.connect ~port:11300 ~host:"127.0.0.1"
+module B = Beanstalk
+
+let bs = B.connect ~port:11300 ~host:"127.0.0.1"
+
+let print_job job = printf "Job: %d, %s\n" (B.Job.id job) (B.Job.data job)
 
 let job_ready = Ivar.create ()
 
+let res bs =
+  B.Worker.reserve bs >>= fun job ->
+  B.Worker.delete bs ~id:(B.Job.id job) >>= (fun _ ->
+      print_job job; return ())
+
 let () = 
-  Ivar.read job_ready >>> fun bs ->
-  Beanstalk.Worker.reserve bs >>> begin fun job -> 
-    let data = Beanstalk.Job.data job in
-    printf "Received job (%d): '%s'" (Beanstalk.Job.id job) data;
-    upon (after (sec 0.2)) (fun _ -> shutdown 0)
+  Ivar.read job_ready >>> begin fun bs ->
+    (res bs) >>= (fun _ -> res bs) >>> fun _ -> (shutdown 0)
   end
 
 let create_random_job bs =
@@ -19,8 +25,6 @@ let create_random_job bs =
     let rc () = Char.of_int_exn (Char.to_int 'b' + (Random.int 20))
     in List.init 5 ~f:(fun _ -> rc ()) |> String.of_char_list in
   Beanstalk.Worker.put bs ~delay:0 ~priority:2 ~ttr:10 ~data:(r ())
-
-let print_job job = printf "Created job with id: %d\n" (Beanstalk.Job.id job)
 
 (*let () = *)
   (*bs >>> begin fun bs -> *)
