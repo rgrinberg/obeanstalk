@@ -1,5 +1,4 @@
 open Core.Std
-open Async.Std
 
 type conn = Beanstalk_raw.conn
 

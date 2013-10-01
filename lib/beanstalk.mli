@@ -1,7 +1,7 @@
 (** Async compatible client to the beanstalkd work queue *)
 
 open Core.Std
-open Async.Std
+open Async.Std (* only dependency is Deferred.t *)
 
 type conn
 
