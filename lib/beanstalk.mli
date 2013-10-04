@@ -44,7 +44,7 @@ module Tube : sig
   (** [watched conn] returns a list of all watched tubes *)
   val watch : conn -> tube:string -> [ `Watching of int ] Deferred.t
   (** [watch conn ~tube] Adds [tube] to the watch list and returns
-   * the number of watched tubes *)
+     the number of watched tubes *)
   val ignore_tube : conn -> tube:string -> unit Deferred.t
   (** [ignore_tube conn ~tube] remove [tube] from the watch list *)
   (** producers *)
