@@ -26,23 +26,13 @@ let create_random_job bs =
     in List.init 5 ~f:(fun _ -> rc ()) |> String.of_char_list in
   Beanstalk.Worker.put bs ~delay:0 ~priority:2 ~ttr:10 ~data:(r ())
 
-(*let () = *)
-  (*bs >>> begin fun bs -> *)
-    (*print_endline "connected to beanstalkd server";*)
-    (*Deferred.all [create_random_job bs; create_random_job bs] >>> fun jobs ->*)
-    (*jobs |> List.iter ~f:print_job;*)
-    (*Ivar.fill job_ready bs*)
-  (*end*)
-
 let () = 
   bs >>> begin fun bs -> 
     print_endline "connected to beanstalkd server";
-    create_random_job bs >>> fun j1 ->
-    create_random_job bs >>> fun j2 ->
-    [j1; j2] |> List.iter ~f:print_job;
+    Deferred.all [create_random_job bs; create_random_job bs] >>> fun jobs ->
+    jobs |> List.iter ~f:print_job;
     Ivar.fill job_ready bs
   end
-
 
 let () = never_returns (Scheduler.go ())
 
