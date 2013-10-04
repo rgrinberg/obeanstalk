@@ -20,10 +20,14 @@ job_create:
 
 all:
 	make build
+	make doc
 	make test
 
 test:
 	./test_pure.native
+
+doc:
+	$(OCAMLBUILD) obeanstalk.docdir/index.html
 
 clean:
 	$(OCAMLBUILD) -clean
