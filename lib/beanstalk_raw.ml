@@ -33,14 +33,13 @@ module Reader = struct
     | `Eof x -> return (`Eof x)
 end
 
-type conn = BS of Reader.t * Writer.t
-
 module Conn = struct
   type t = {
     reader : Reader.t;
     writer : Writer.t;
     throttle : unit Throttle.Sequencer.t
   }
+
   let create ~reader ~writer = { 
     reader; writer;
     throttle=(Throttle.Sequencer.create ~continue_on_error:true ());
@@ -49,23 +48,26 @@ module Conn = struct
     Throttle.enqueue throttle (fun () -> f reader writer)
 end
 
+type conn = Conn.t
+open Conn
+
 let default_port = 11300
 let default_tube_name = "default"
 
 let connect ~host ~port = 
   let where = Tcp.to_host_and_port host port in
-  Tcp.connect where >>| (fun (_,reader, writer) -> BS (reader, writer))
+  Tcp.connect where >>| (fun (_,reader, writer) -> Conn.create ~reader ~writer)
 
 let default_connection ?(host="localhost") ?(port=default_port) () =
   connect ~host ~port
 
-let quit (BS (r, w)) = (* assuming we don't need to close the socket *)
+let quit {reader=r;writer=w;_} =
   Writer.close w >>= (fun _ -> Reader.close r)
 
 (* independent call from everything else, mostly a sanity check *)
 let health_check ~host ~port =
   Monitor.try_with ~extract_exn:true begin fun () ->
-    connect ~port ~host >>= (fun (BS (r, w)) ->
+    connect ~port ~host >>= (fun {reader=r;writer=w;_} ->
         "stats" |> Prot.wrap |> Writer.write w;
         Reader.read_line r >>| function
         | `Ok res ->
@@ -74,7 +76,7 @@ let health_check ~host ~port =
         | `Eof -> failwith "Unexpected eof")
   end
 
-let send (BS (r,w)) req = 
+let send {writer=w;_} req = 
   let open Prot.Request in match req with
   | Single cmd -> Writer.write_rn w (Prot.Command.to_string cmd)
   | WithJob (cmd, load) -> begin
@@ -82,11 +84,11 @@ let send (BS (r,w)) req =
       Writer.write_rn w load
     end
 
-let recv_single (BS (r, _)) (`Single cmd_reader) = 
+let recv_single {reader=r;_} (`Single cmd_reader) = 
   (Reader.read_rn_with_exn r) >>|
   fun s -> s |> Prot.Command.of_string |> cmd_reader
 
-let recv_payload (BS (r, _)) (`WithPayload cmd_reader) = 
+let recv_payload {reader=r;_} (`WithPayload cmd_reader) = 
   (Reader.read_rn_with_exn r) >>= fun str_cmd ->
   let cmd = Prot.Command.of_string str_cmd in
   let size = Prot.Command.size cmd in 
@@ -95,10 +97,11 @@ let recv_payload (BS (r, _)) (`WithPayload cmd_reader) =
   | `Eof _ -> assert false (* TODO *)
 
 let process cn ~req ~rep = 
-  send cn req;
-  match rep with
-  | (`Single _) as rep -> recv_single cn rep
-  | (`WithPayload _) as rep -> recv_payload cn rep
+  Conn.enqueue cn ~f:(fun _ _ ->
+      send cn req;
+      match rep with
+      | (`Single _) as rep -> recv_single cn rep
+      | (`WithPayload _) as rep -> recv_payload cn rep)
 
 let process_k cn ~req ~rep ~k = process cn ~req ~rep >>| k 
 
