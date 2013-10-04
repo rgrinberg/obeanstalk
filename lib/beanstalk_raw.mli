@@ -1,7 +1,7 @@
 open Core.Std
 open Async.Std
 
-type conn = BS of Reader.t * Writer.t
+type conn
 
 val default_port : int
 
