@@ -21,5 +21,11 @@ test:
 
 clean:
 	$(OCAMLBUILD) -clean
+
+install:
+	ocamlfind install $(NAME) META $(INSTALL)
+
+uninstall:
+	ocamlfind remove $(NAME)
 	
-.PHONY: build all build default
+.PHONY: build all build default install uninstall
