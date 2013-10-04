@@ -35,6 +35,20 @@ end
 
 type conn = BS of Reader.t * Writer.t
 
+module Conn = struct
+  type t = {
+    reader : Reader.t;
+    writer : Writer.t;
+    throttle : unit Throttle.Sequencer.t
+  }
+  let create ~reader ~writer = { 
+    reader; writer;
+    throttle=(Throttle.Sequencer.create ~continue_on_error:true ());
+  }
+  let enqueue {reader;writer;throttle} ~f =
+    Throttle.enqueue throttle (fun () -> f reader writer)
+end
+
 let default_port = 11300
 let default_tube_name = "default"
 
