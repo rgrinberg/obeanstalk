@@ -29,9 +29,10 @@ let create_random_job bs =
 let () = 
   bs >>> begin fun bs -> 
     print_endline "connected to beanstalkd server";
-    Deferred.all [create_random_job bs; create_random_job bs] >>> fun jobs ->
-    jobs |> List.iter ~f:print_job;
-    Ivar.fill job_ready bs
+    Deferred.all [create_random_job bs; create_random_job bs]
+    >>> (fun jobs ->
+      jobs |> List.iter ~f:print_job;
+      Ivar.fill job_ready bs)
   end
 
 let () = never_returns (Scheduler.go ())
