@@ -14,18 +14,6 @@ val health_check :
   host:string ->
   port:int -> ([> `Ok ], exn) Result.t Deferred.t
 
-val send : conn -> Beanstalk_cmd.Request.t -> unit
-
-val recv_single :
-  conn ->
-  [< `Single of Beanstalk_cmd.Command.t -> 'a ] ->
-  'a Deferred.t
-
-val recv_payload :
-  conn ->
-  [< `WithPayload of Beanstalk_cmd.Command.t -> string -> 'a ] ->
-  'a Deferred.t
-
 val process :
   conn ->
   req:Beanstalk_cmd.Request.t ->
