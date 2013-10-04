@@ -1,11 +1,17 @@
 NAME = obeanstalk
 OCAMLBUILD = ocamlbuild -use-ocamlfind
+
+INSTALL_TARGETS = beanstalk.cma beanstalk.cmxa beanstalk.cmi beanstalk.a \
+				  beanstalk.mli
+INSTALL = $(addprefix _build/lib/, $(INSTALL_TARGETS))
+
 TARGETS = lib/obean.native lib_test/test_pure.native lib_test/test_obs.native \
 		  examples/job_create.native
 
 default: all
 
 build:
+	$(OCAMLBUILD) $(INSTALL_TARGETS)
 	$(OCAMLBUILD) $(TARGETS)
 	otags -I ~/.opam/4.00.1+short-types/lib/type_conv/ -I ~/.opam/4.00.1+short-types/lib/sexplib -pa pa_type_conv.cma -pa pa_sexp_conv.cma ./lib ./lib_test -r -vi
 
