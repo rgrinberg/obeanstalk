@@ -16,7 +16,7 @@ val default_connection : ?host:string -> ?port:int -> unit -> conn Deferred.t
 
 val quit : conn -> unit Deferred.t
 (** [quit conn] Returns a deferred that is resolved when a connection is closed
- * *)
+ *)
 
 (** Representation of beanstalkd jobs *)
 module Job : sig
@@ -55,7 +55,6 @@ end
 (** Job operations within beanstalkd *)
 module Worker : sig
   val reserve : ?timeout:int -> conn -> Job.t Deferred.t
-  (** job operations *)
   val put : conn -> ?delay:int ->
     priority:int -> ttr:int -> data:string -> Job.t Deferred.t
 
