@@ -1,4 +1,5 @@
 open Core.Std
+open Async.Std
 
 type conn = Beanstalk_raw.conn
 
@@ -66,14 +67,25 @@ module Worker = struct
   open Beanstalk_raw
   open Beanstalk_cmd
 
-  let reserve ?timeout cn = 
-    let req = match timeout with
-      | None -> Request.reserve
-      | Some timeout -> Request.reserve_timeout ~timeout
-    in process_k cn
-      ~req ~rep:(Response.reserve)
-      ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(parse_response data))
+  let reserve_timeout cn span =
+    let seconds = span |> Time.Span.to_sec |> Int.of_float in
+    Monitor.try_with ~extract_exn:true (fun () -> 
+      process_k cn
+        ~req:(Request.reserve_timeout ~timeout:seconds) ~rep:(Response.reserve)
+        ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
+    ) >>| function
+      | Ok x -> `Ok x
+      | Error Beanstalk_exc.Timeout -> `Timeout
+      | Error x -> raise x
+
+  let reserve' cn = 
+      reserve_timeout cn Time.Span.zero >>| function
+        | `Timeout -> `Unavailable
+        | `Ok x -> `Ok x
+
+  let reserve cn =
+    process_k cn ~req:(Request.reserve) ~rep:(Response.reserve)
+      ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
 
   let put cn ?delay ~priority ~ttr ~data = 
     let bytes = String.length data in
@@ -106,7 +118,7 @@ module Worker = struct
     process_k cn
       ~req ~rep:(Response.peek_any)
       ~k:(fun (`Id id, data) -> 
-        Job.create ~id ~data:(parse_response data))
+          Job.create ~id ~data:(parse_response data))
 
   let peek cn ~id = peek_any cn ~req:(Request.peek ~id)
 
