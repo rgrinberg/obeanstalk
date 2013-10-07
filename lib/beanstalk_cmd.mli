@@ -1,7 +1,6 @@
 
 val wrap         : string -> string
 val unwrap       : string -> string
-val unwrap_smart : string -> string
 
 module Payload : sig
   type _ t =

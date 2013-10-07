@@ -7,14 +7,6 @@ let unwrap x =
   assert (x.[len-1] = '\n' && x.[len-2] = '\r');
   String.sub ~pos:0 ~len:(len-2) x
 
-(* strip \r\n from the end of the line *)
-let unwrap_smart x = 
-  let count = ref 0 in
-  let len = x |> String.length in
-  (try if x.[len-1] = '\n' then incr count with _ -> ());
-  (try if x.[len-2] = '\r'then incr count with _ -> ());
-  String.sub ~pos:0 ~len:(len - (!count)) x
-
 module Payload = struct
   type _ t = 
     | YList : string -> (string list) t
