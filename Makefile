@@ -41,5 +41,8 @@ install:
 
 uninstall:
 	ocamlfind remove $(NAME)
+
+ncat:
+	ncat -C 0.0.0.0 11300
 	
 .PHONY: build all build default install uninstall tags
