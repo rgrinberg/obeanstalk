@@ -20,7 +20,7 @@ module Reader = struct
   (** read line, throw exception if on beanstalkd error *)
   let read_rn_with_exn t = 
     read_line t >>| function
-    | `Ok res -> (Exc.raise_if_error res; res)
+    | `Ok res -> (Prot.raise_if_error res; res)
     | `Eof -> failwith "unexpected eof"
 
   (** read a string of len [len] otherwise pass the error. drop \r\n

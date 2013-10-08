@@ -14,4 +14,3 @@ exception Not_connected                 with sexp
 exception Invalid_tube_name             with sexp
 exception Job_not_reserved              with sexp
 exception Beanstalk_not_found           with sexp
-val raise_if_error : string -> unit

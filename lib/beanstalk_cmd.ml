@@ -7,6 +7,24 @@ let unwrap x =
   assert (x.[len-1] = '\n' && x.[len-2] = '\r');
   String.sub ~pos:0 ~len:(len-2) x
 
+let raise_if_error s = 
+  let open Beanstalk_exc in
+  match (String.split s ~on:' ') with
+  | "NOT_FOUND"::_       -> raise Beanstalk_not_found
+  | "TIMED_OUT"::_       -> raise Timeout
+  | "OUT_OF_MEMORY"::_   -> raise Out_of_memory
+  | "INTERNAL_ERROR"::_  -> raise Internal_error
+  | "DRAINING"::_        -> raise Draining
+  | "BAD_FORMAT"::_      -> raise Bad_format
+  | "UNKNOWN_COMMAND"::_ -> raise Unknown_command
+  | "EXPECTED_CRLF"::_   -> raise Expected_crlf
+  | "JOB_TOO_BIG"::_     -> raise Job_too_big
+  | "DEADLINE_SOON"::_   -> raise Deadline_soon
+  | "NOT_IGNORED"::_     -> raise Not_ignored
+  | "BURIED"::[id_s]     -> raise (Buried (Some (int_of_string id_s)))
+  | "BURIED"::[]         -> raise (Buried None)
+  | _                    -> ()
+
 module Payload = struct
   type _ t = 
     | YList : string -> (string list) t

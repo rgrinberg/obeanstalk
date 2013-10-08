@@ -1,6 +1,7 @@
 
 val wrap         : string -> string
 val unwrap       : string -> string
+val raise_if_error : string -> unit
 
 module Payload : sig
   type _ t =
