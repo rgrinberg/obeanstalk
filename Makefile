@@ -7,7 +7,7 @@ INSTALL_TARGETS = beanstalk.cma beanstalk.cmxa beanstalk.cmi beanstalk.a \
 INSTALL = $(addprefix _build/lib/, $(INSTALL_TARGETS))
 
 TARGETS = lib/obean.native lib_test/test_pure.native lib_test/test_obs.native \
-		  examples/job_create.native
+		  examples/job_create.native examples/deadline_soon.native
 
 default: all
 
