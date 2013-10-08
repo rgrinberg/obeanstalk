@@ -89,9 +89,9 @@ end
 
 exception Timed_out                     with sexp
 exception Out_of_memory                 with sexp
-exception Internal_error                with sexp
+(** Raised when beanstalkd cannot allocate enough memory for the job*)
 exception Draining                      with sexp
-exception Bad_format                    with sexp
+(** Raised when the server is no longer accepting new jobs *)
 exception Unknown_command               with sexp
 exception Buried of int option          with sexp
 exception Job_too_big                   with sexp
@@ -100,11 +100,17 @@ exception Not_ignored                   with sexp
 exception Not_connected                 with sexp
 exception Invalid_tube_name             with sexp
 exception Job_not_reserved              with sexp
+
 exception Beanstalk_not_found           with sexp
-(** Raised when a job is not found. Purposely named not to be confused
+(** Raised when a job/tube is not found. Purposely named not to be confused
     with [Not_found] from pervaisves *)
 
+exception Bad_format                    with sexp
+(** Invalid input from the client. Means bug in the library *)
 exception Unexpected_response of string with sexp
 (** If you ever see this exception. Please contact the library author *)
 exception Expected_crlf                 with sexp
 (** If you ever see this exception. Please contact the library author *)
+
+exception Internal_error                with sexp
+(** Raised when there is a bug in beanstalkd *)
