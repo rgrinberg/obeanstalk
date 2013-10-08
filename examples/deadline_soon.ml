@@ -24,7 +24,17 @@ let rec loop bs =
     (fun job -> print_job job; return ()) >>=
     (fun _ -> Clock.after (sec 0.1)) >>=
     trigger_deadline_soon
-  in create_jobs 3 >>= (fun _ -> trigger_deadline_soon ())
+  in 
+  Monitor.try_with ~extract_exn:true (fun () ->
+    create_jobs 3 >>= (fun _ -> trigger_deadline_soon ())
+  ) >>= function
+    | Ok _ -> assert false (* infinite loop *)
+    | Error B.Deadline_soon -> begin
+      printf "caught the deadline_soon!\n";
+      shutdown 0;
+      return ()
+    end
+    | Error _ -> assert false
 
 let _ = bs >>= loop
 
