@@ -70,13 +70,13 @@ module Worker = struct
   let reserve_timeout cn span =
     let seconds = span |> Time.Span.to_sec |> Int.of_float in
     Monitor.try_with ~extract_exn:true (fun () -> 
-      process_k cn
-        ~req:(Request.reserve_timeout ~timeout:seconds) ~rep:Response.reserve
-        ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
-    ) >>| function
-      | Ok x -> `Ok x
-      | Error Beanstalk_exc.Timed_out -> `Timed_out
-      | Error x -> raise x
+        process_k cn
+          ~req:(Request.reserve_timeout ~timeout:seconds) ~rep:Response.reserve
+          ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
+      ) >>| function
+    | Ok x -> `Ok x
+    | Error Beanstalk_exc.Timed_out -> `Timed_out
+    | Error x -> raise x
 
   let reserve_now cn = reserve_timeout cn Time.Span.zero
 
