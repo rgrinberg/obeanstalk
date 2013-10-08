@@ -56,13 +56,13 @@ end
 module Worker : sig
   val reserve : conn -> Job.t Deferred.t
 
-  val reserve' : conn -> [`Ok of Job.t | `Unavailable ] Deferred.t
-  (** [reserve' conn] is like reserve except that it will not block the
+  val reserve_now : conn -> [`Ok of Job.t | `Timed_out ] Deferred.t
+  (** [reserve_now conn] is like reserve except that it will not block the
   connection to the beanstalkd instance and will resolve immediately if
   a job isn't available *)
 
   val reserve_timeout : 
-    conn -> Time.Span.t -> [`Ok of Job.t | `Timeout ] Deferred.t
+    conn -> Time.Span.t -> [`Ok of Job.t | `Timed_out ] Deferred.t
   (** [reserve_timeout conn span] will attempt to reserve a job for upto
   span seconds. If after [span] a job isn't found then the deffered
   resolves to `Timeout. Warning: [span] rounds down subsecond percision *)

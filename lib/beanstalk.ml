@@ -78,10 +78,7 @@ module Worker = struct
       | Error Beanstalk_exc.Timed_out -> `Timed_out
       | Error x -> raise x
 
-  let reserve' cn = 
-      reserve_timeout cn Time.Span.zero >>| function
-        | `Timeout -> `Unavailable
-        | `Ok x -> `Ok x
+  let reserve_now cn = reserve_timeout cn Time.Span.zero
 
   let reserve cn =
     process_k cn ~req:(Request.reserve) ~rep:(Response.reserve)
