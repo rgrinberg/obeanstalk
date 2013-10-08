@@ -9,7 +9,7 @@ let unwrap x =
 
 let raise_if_error s = 
   let open Beanstalk_exc in
-  match (String.split s ~on:' ') with
+  match String.split s ~on:' ' with
   | "NOT_FOUND"::_       -> raise Beanstalk_not_found
   | "TIMED_OUT"::_       -> raise Timed_out
   | "OUT_OF_MEMORY"::_   -> raise Out_of_memory

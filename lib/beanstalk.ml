@@ -54,13 +54,13 @@ module Tube = struct
   let use cn ~tube = 
     process_k cn 
       ~req:(Request.use_tube ~tube)
-      ~rep:(Response.using)
+      ~rep:Response.using
       ~k:ignore 
 
   let using cn =
     process cn
-      ~req:(Request.list_tube_used)
-      ~rep:(Response.using) 
+      ~req:Request.list_tube_used
+      ~rep:Response.using
 end  
 
 module Worker = struct
@@ -71,7 +71,7 @@ module Worker = struct
     let seconds = span |> Time.Span.to_sec |> Int.of_float in
     Monitor.try_with ~extract_exn:true (fun () -> 
       process_k cn
-        ~req:(Request.reserve_timeout ~timeout:seconds) ~rep:(Response.reserve)
+        ~req:(Request.reserve_timeout ~timeout:seconds) ~rep:Response.reserve
         ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
     ) >>| function
       | Ok x -> `Ok x
@@ -81,7 +81,7 @@ module Worker = struct
   let reserve_now cn = reserve_timeout cn Time.Span.zero
 
   let reserve cn =
-    process_k cn ~req:(Request.reserve) ~rep:(Response.reserve)
+    process_k cn ~req:Request.reserve ~rep:Response.reserve
       ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
 
   let put cn ?delay ~priority ~ttr ~data = 
@@ -94,51 +94,51 @@ module Worker = struct
   let bury cn ~id ~priority =
     process cn
       ~req:(Request.bury ~id ~priority)
-      ~rep:(Response.bury) 
+      ~rep:Response.bury
 
   let delete cn ~id = 
     process cn
       ~req:(Request.delete ~id)
-      ~rep:(Response.delete) 
+      ~rep:Response.delete
 
   let touch cn ~id =
     process cn
       ~req:(Request.touch ~id)
-      ~rep:(Response.touch) 
+      ~rep:Response.touch
 
   let release cn ~id ~priority ~delay =
     process cn
       ~req:(Request.release ~id ~priority ~delay)
-      ~rep:(Response.release) 
+      ~rep:Response.release
 
   let peek_any cn ~req = 
     process_k cn
-      ~req ~rep:(Response.peek_any)
+      ~req ~rep:Response.peek_any
       ~k:(fun (`Id id, data) -> 
           Job.create ~id ~data:(parse_response data))
 
   let peek cn ~id = peek_any cn ~req:(Request.peek ~id)
 
-  let peek_ready cn = peek_any cn ~req:(Request.peek_ready)
+  let peek_ready cn = peek_any cn ~req:Request.peek_ready
 
-  let peek_delayed cn = peek_any cn ~req:(Request.peek_delayed)
+  let peek_delayed cn = peek_any cn ~req:Request.peek_delayed
 
-  let peek_buried cn = peek_any cn ~req:(Request.peek_buried)
+  let peek_buried cn = peek_any cn ~req:Request.peek_buried
 
   let kick_bound cn ~bound =
     process cn
       ~req:(Request.kick_bound ~bound)
-      ~rep:(Response.kick_bound) 
+      ~rep:Response.kick_bound
 
   let kick_job cn ~id =
     process cn
       ~req:(Request.kick_job ~id)
-      ~rep:(Response.kick_job) 
+      ~rep:Response.kick_job
 
   let stats cn ~id = 
     process_k cn
       ~req:(Request.stats_job ~id)
-      ~rep:(Response.stats_job)
+      ~rep:Response.stats_job
       ~k:parse_response 
 end
 
