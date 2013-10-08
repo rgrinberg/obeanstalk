@@ -75,7 +75,7 @@ module Worker = struct
         ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
     ) >>| function
       | Ok x -> `Ok x
-      | Error Beanstalk_exc.Timeout -> `Timeout
+      | Error Beanstalk_exc.Timed_out -> `Timed_out
       | Error x -> raise x
 
   let reserve' cn = 

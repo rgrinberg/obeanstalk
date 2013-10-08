@@ -11,7 +11,7 @@ let raise_if_error s =
   let open Beanstalk_exc in
   match (String.split s ~on:' ') with
   | "NOT_FOUND"::_       -> raise Beanstalk_not_found
-  | "TIMED_OUT"::_       -> raise Timeout
+  | "TIMED_OUT"::_       -> raise Timed_out
   | "OUT_OF_MEMORY"::_   -> raise Out_of_memory
   | "INTERNAL_ERROR"::_  -> raise Internal_error
   | "DRAINING"::_        -> raise Draining

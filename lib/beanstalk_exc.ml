@@ -1,6 +1,6 @@
 open Core.Std
 exception Unexpected_response of string with sexp
-exception Timeout                       with sexp
+exception Timed_out                     with sexp
 exception Out_of_memory                 with sexp
 exception Internal_error                with sexp
 exception Draining                      with sexp

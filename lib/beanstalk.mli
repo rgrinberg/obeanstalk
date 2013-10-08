@@ -87,7 +87,7 @@ module Worker : sig
   val stats : conn -> id:int -> (string * string) list Deferred.t
 end
 
-exception Timeout                       with sexp
+exception Timed_out                     with sexp
 exception Out_of_memory                 with sexp
 exception Internal_error                with sexp
 exception Draining                      with sexp
