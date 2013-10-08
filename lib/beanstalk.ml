@@ -92,9 +92,15 @@ module Worker = struct
       ~k:(fun (`Id id) -> Job.create ~id ~data)
 
   let bury cn ~id ~priority =
-    process cn
-      ~req:(Request.bury ~id ~priority)
-      ~rep:Response.bury
+    (* burying is a little special because BURIED is an error in most
+     * other requests. But here it's the expected response *)
+    Monitor.try_with ~extract_exn:true (fun () ->
+        process cn
+          ~req:(Request.bury ~id ~priority) ~rep:Response.bury
+      ) >>| function
+    | Ok x -> failwith "should not happen"
+    | Error (Beanstalk_exc.Buried (None)) -> ()
+    | Error x -> raise x
 
   let delete cn ~id = 
     process cn
