@@ -23,14 +23,21 @@ module Reader = struct
     | `Ok res -> (Prot.raise_if_error res; res)
     | `Eof -> failwith "unexpected eof"
 
-  (** read a string of len [len] otherwise pass the error. drop \r\n
-   * after reading [len] bytes*)
-  (* TODO make this more efficeint/better error handling *)
-  let read_buffer_drop_rn r ~len =
+  (* inefficient version? calls read twice *)
+  let read_buffer_drop_rn' r ~len =
     let buf = String.create len in
     really_read r ~len buf >>= function
     | `Ok -> really_read r ~len:2 (String.create 2) >>| (fun _ -> `Ok buf)
     | `Eof x -> return (`Eof x)
+
+  (** read a string of len [len] otherwise pass the error. drop \r\n
+   * after reading [len] bytes*)
+  let read_buffer_drop_rn r ~len =
+    let len = len + 2 in
+    let buf = String.create len in
+    really_read r ~len buf >>| function
+      | `Ok -> `Ok (Prot.unwrap buf)
+      | `Eof x -> `Eof x
 end
 
 module Conn = struct
