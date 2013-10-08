@@ -148,3 +148,5 @@ end
 let connect            = Beanstalk_raw.connect
 let default_connection = Beanstalk_raw.default_connection
 let quit               = Beanstalk_raw.quit
+
+include Beanstalk_exc
