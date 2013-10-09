@@ -1,22 +1,22 @@
 open Core.Std
-
 type error =
-  | Unexpected_response of string
   | Timed_out
   | Out_of_memory
-  | Internal_error
   | Draining
-  | Bad_format
   | Unknown_command
   | Buried of int option
-  | Expected_crlf
   | Job_too_big
   | Deadline_soon
   | Not_ignored
   | Not_connected
   | Invalid_tube_name
   | Job_not_reserved
-  | Beanstalk_not_found with sexp
+  | Beanstalk_not_found
+  | Expected_crlf
+  | Bad_format
+  | Internal_error
+  | Unexpected_response of string
+  with sexp
 
 exception Beanstalk_error of error with sexp
 
