@@ -87,30 +87,30 @@ module Worker : sig
   val stats : conn -> id:int -> (string * string) list Deferred.t
 end
 
-exception Timed_out                     with sexp
-exception Out_of_memory                 with sexp
+type error =
+  | Unexpected_response of string
+(** If you ever see this exception. Please contact the library author *)
+  | Timed_out
+  | Out_of_memory
 (** Raised when beanstalkd cannot allocate enough memory for the job*)
-exception Draining                      with sexp
+  | Internal_error
+(** Raised when there is a bug in beanstalkd *)
+  | Draining
 (** Raised when the server is no longer accepting new jobs *)
-exception Unknown_command               with sexp
-exception Buried of int option          with sexp
-exception Job_too_big                   with sexp
-exception Deadline_soon                 with sexp
-exception Not_ignored                   with sexp
-exception Not_connected                 with sexp
-exception Invalid_tube_name             with sexp
-exception Job_not_reserved              with sexp
-
-exception Beanstalk_not_found           with sexp
+  | Bad_format
+(** Invalid input from the client. Means bug in the library *)
+  | Unknown_command
+  | Buried of int option
+  | Expected_crlf
+(** If you ever see this exception. Please contact the library author *)
+  | Job_too_big
+  | Deadline_soon
+  | Not_ignored
+  | Not_connected
+  | Invalid_tube_name
+  | Job_not_reserved
+  | Beanstalk_not_found with sexp
 (** Raised when a job/tube is not found. Purposely named not to be confused
     with [Not_found] from pervaisves *)
 
-exception Bad_format                    with sexp
-(** Invalid input from the client. Means bug in the library *)
-exception Unexpected_response of string with sexp
-(** If you ever see this exception. Please contact the library author *)
-exception Expected_crlf                 with sexp
-(** If you ever see this exception. Please contact the library author *)
-
-exception Internal_error                with sexp
-(** Raised when there is a bug in beanstalkd *)
+exception Beanstalk_error of error with sexp

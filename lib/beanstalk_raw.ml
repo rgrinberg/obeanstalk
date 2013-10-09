@@ -79,7 +79,7 @@ let health_check ~host ~port =
         Reader.read_line r >>| function
         | `Ok res ->
           if (String.sub ~pos:0 ~len: 2 res = "OK") then `Ok
-          else raise (Exc.Unexpected_response (res))
+          else Exc.raise_b (Exc.Unexpected_response (res))
         | `Eof -> failwith "Unexpected eof")
   end
 

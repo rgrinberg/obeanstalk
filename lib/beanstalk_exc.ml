@@ -1,17 +1,23 @@
 open Core.Std
-exception Unexpected_response of string with sexp
-exception Timed_out                     with sexp
-exception Out_of_memory                 with sexp
-exception Internal_error                with sexp
-exception Draining                      with sexp
-exception Bad_format                    with sexp
-exception Unknown_command               with sexp
-exception Buried of int option          with sexp
-exception Expected_crlf                 with sexp
-exception Job_too_big                   with sexp
-exception Deadline_soon                 with sexp
-exception Not_ignored                   with sexp
-exception Not_connected                 with sexp
-exception Invalid_tube_name             with sexp
-exception Job_not_reserved              with sexp
-exception Beanstalk_not_found           with sexp
+
+type error =
+  | Unexpected_response of string
+  | Timed_out
+  | Out_of_memory
+  | Internal_error
+  | Draining
+  | Bad_format
+  | Unknown_command
+  | Buried of int option
+  | Expected_crlf
+  | Job_too_big
+  | Deadline_soon
+  | Not_ignored
+  | Not_connected
+  | Invalid_tube_name
+  | Job_not_reserved
+  | Beanstalk_not_found with sexp
+
+exception Beanstalk_error of error with sexp
+
+let raise_b e = raise (Beanstalk_error e) 

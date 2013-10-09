@@ -29,7 +29,7 @@ let rec loop bs =
     create_jobs 3 >>= (fun _ -> trigger_deadline_soon ())
   ) >>= function
     | Ok _ -> assert false (* infinite loop *)
-    | Error B.Deadline_soon -> begin
+    | Error B.Beanstalk_error(B.Deadline_soon) -> begin
       printf "caught the deadline_soon!\n";
       shutdown 0;
       return ()

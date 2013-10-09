@@ -3,6 +3,8 @@ open Async.Std
 
 type conn = Beanstalk_raw.conn
 
+open Beanstalk_exc
+
 module Job = struct
   type t = {
     id : int;
@@ -75,7 +77,7 @@ module Worker = struct
           ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
       ) >>| function
     | Ok x -> `Ok x
-    | Error Beanstalk_exc.Timed_out -> `Timed_out
+    | Error Beanstalk_error(Timed_out) -> `Timed_out
     | Error x -> raise x
 
   let reserve_now cn = reserve_timeout cn Time.Span.zero
@@ -99,7 +101,7 @@ module Worker = struct
           ~req:(Request.bury ~id ~priority) ~rep:Response.bury
       ) >>| function
     | Ok x -> failwith "should not happen"
-    | Error (Beanstalk_exc.Buried (None)) -> ()
+    | Error (Beanstalk_error(Buried (None))) -> ()
     | Error x -> raise x
 
   let delete cn ~id = 

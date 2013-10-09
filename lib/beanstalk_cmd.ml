@@ -1,5 +1,7 @@
 open Core.Std
 
+open Beanstalk_exc
+
 let wrap x = x ^ "\r\n"
 
 let unwrap x = 
@@ -10,19 +12,19 @@ let unwrap x =
 let raise_if_error s = 
   let open Beanstalk_exc in
   match String.split s ~on:' ' with
-  | "NOT_FOUND"::_       -> raise Beanstalk_not_found
-  | "TIMED_OUT"::_       -> raise Timed_out
-  | "OUT_OF_MEMORY"::_   -> raise Out_of_memory
-  | "INTERNAL_ERROR"::_  -> raise Internal_error
-  | "DRAINING"::_        -> raise Draining
-  | "BAD_FORMAT"::_      -> raise Bad_format
-  | "UNKNOWN_COMMAND"::_ -> raise Unknown_command
-  | "EXPECTED_CRLF"::_   -> raise Expected_crlf
-  | "JOB_TOO_BIG"::_     -> raise Job_too_big
-  | "DEADLINE_SOON"::_   -> raise Deadline_soon
-  | "NOT_IGNORED"::_     -> raise Not_ignored
-  | "BURIED"::[id_s]     -> raise (Buried (Some (int_of_string id_s)))
-  | "BURIED"::[]         -> raise (Buried None)
+  | "NOT_FOUND"::_       -> raise_b Beanstalk_not_found
+  | "TIMED_OUT"::_       -> raise_b Timed_out
+  | "OUT_OF_MEMORY"::_   -> raise_b Out_of_memory
+  | "INTERNAL_ERROR"::_  -> raise_b Internal_error
+  | "DRAINING"::_        -> raise_b Draining
+  | "BAD_FORMAT"::_      -> raise_b Bad_format
+  | "UNKNOWN_COMMAND"::_ -> raise_b Unknown_command
+  | "EXPECTED_CRLF"::_   -> raise_b Expected_crlf
+  | "JOB_TOO_BIG"::_     -> raise_b Job_too_big
+  | "DEADLINE_SOON"::_   -> raise_b Deadline_soon
+  | "NOT_IGNORED"::_     -> raise_b Not_ignored
+  | "BURIED"::[id_s]     -> raise_b (Buried (Some (int_of_string id_s)))
+  | "BURIED"::[]         -> raise_b (Buried None)
   | _                    -> ()
 
 module Payload = struct
