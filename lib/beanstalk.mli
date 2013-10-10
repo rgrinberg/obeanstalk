@@ -33,13 +33,14 @@ end
 
 (** A module to manipulate beanstalkd tubes *)
 module Tube : sig
-  (** common operations *)
   val all : conn -> string list Deferred.t
   (** [all conn] returns the names of all tubes available *)
   val stats : conn -> tube:string -> (string * string) list Deferred.t
   (** [stats conn ~tube] return a list of statistics for [tube] *)
   val pause : conn -> tube:string -> delay:int -> unit Deferred.t
-  (** consumers *)
+  (** [pause conn ~tube ~delay] Set a delay of [delay] seconds on [tube].
+      Hence any job reserves from this tube will be delayed by at least
+      [delay] seconds*)
   val watched : conn -> string list Deferred.t
   (** [watched conn] returns a list of all watched tubes *)
   val watch : conn -> tube:string -> [ `Watching of int ] Deferred.t
@@ -47,9 +48,11 @@ module Tube : sig
       the number of watched tubes *)
   val ignore_tube : conn -> tube:string -> unit Deferred.t
   (** [ignore_tube conn ~tube] remove [tube] from the watch list *)
-  (** producers *)
   val use : conn -> tube:string -> unit Deferred.t
+  (** [use conn ~tube] Subsequent [Worker.put] commands will put jobs
+      into [tube] *)
   val using : conn -> [ `Tube of string ] Deferred.t
+  (** [using conn] Returns the currently uses tube *)
 end
 
 (** Job operations within beanstalkd *)
