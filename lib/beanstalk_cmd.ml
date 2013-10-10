@@ -13,13 +13,13 @@ let raise_if_error s =
   let open Beanstalk_exc in
   match String.split s ~on:' ' with
   | "NOT_FOUND"::_       -> raise_b Beanstalk_not_found
-  | "TIMED_OUT"::_       -> raise_b Timed_out
+  | "TIMED_OUT"::_       -> raise Timed_out
   | "OUT_OF_MEMORY"::_   -> raise_b Out_of_memory
-  | "INTERNAL_ERROR"::_  -> raise_b Internal_error
+  | "INTERNAL_ERROR"::_  -> raise Internal_error
   | "DRAINING"::_        -> raise_b Draining
-  | "BAD_FORMAT"::_      -> raise_b Bad_format
-  | "UNKNOWN_COMMAND"::_ -> raise_b Unknown_command
-  | "EXPECTED_CRLF"::_   -> raise_b Expected_crlf
+  | "BAD_FORMAT"::_      -> raise Bad_format
+  | "UNKNOWN_COMMAND"::_ -> raise Unknown_command
+  | "EXPECTED_CRLF"::_   -> raise Expected_crlf
   | "JOB_TOO_BIG"::_     -> raise_b Job_too_big
   | "DEADLINE_SOON"::_   -> raise_b Deadline_soon
   | "NOT_IGNORED"::_     -> raise_b Not_ignored

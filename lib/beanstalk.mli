@@ -88,29 +88,20 @@ module Worker : sig
 end
 
 type error =
-  | Timed_out
   | Out_of_memory
 (** Raised when beanstalkd cannot allocate enough memory for the job*)
   | Draining
 (** Raised when the server is no longer accepting new jobs *)
-  | Unknown_command
   | Buried of int option
+(** XXX *)
   | Job_too_big
+(** Client has requested to put a job with a body larger than max-job-size bytes *)
   | Deadline_soon
-  | Not_ignored
-  | Not_connected
-  | Invalid_tube_name
-  | Job_not_reserved
+(**  XXX *)
+  | Not_ignored 
+(** Client attempts to ignore only tube in its watch list *)
   | Beanstalk_not_found
-(** Raised when a job/tube is not found *)
-  | Expected_crlf
-(** If you ever see this exception. Please contact the library author *)
-  | Bad_format
-(** Invalid input from the client. Means bug in the library *)
-  | Internal_error
-(** Raised when there is a bug in beanstalkd *)
-  | Unexpected_response of string
-(** If you ever see this exception. Please contact the library author *)
+(** Requested job/tube is not found *)
   with sexp
 
 exception Beanstalk_error of error with sexp
