@@ -2,3 +2,4 @@
 tags
 *.native
 _build/**
+*.docdir
