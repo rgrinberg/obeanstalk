@@ -89,7 +89,8 @@ module Worker : sig
       for more time to process it before it starts replying with Deadline_soon*)
 
   val release : conn -> id:int -> priority:int -> delay:int -> unit Deferred.t
-  (** TODO *)
+  (** [release conn ~id ~priority ~delay] Puts the reserved job [id] back
+      in the ready queue with a [priority] and [delay]*)
 
   val peek : conn -> id:int -> Job.t Deferred.t
   (** [peek conn ~id] Return the job [id] *)
