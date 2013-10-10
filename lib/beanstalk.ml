@@ -138,7 +138,7 @@ module Worker = struct
       ~req:(Request.kick_bound ~bound)
       ~rep:Response.kick_bound
 
-  let kick_job cn ~id =
+  let kick cn ~id =
     process cn
       ~req:(Request.kick_job ~id)
       ~rep:Response.kick_job
