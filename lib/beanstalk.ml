@@ -86,7 +86,7 @@ module Worker = struct
     process_k cn ~req:Request.reserve ~rep:Response.reserve
       ~k:(fun (`Id id, data) -> Job.create ~id ~data:(parse_response data))
 
-  let put cn ?delay ?priority ?ttr ~data =
+  let put ?delay ?priority ?ttr cn ~data =
     let bytes = String.length data in
     process_k cn
       ~req:(Request.put ?delay ?priority ?ttr ~bytes ~job:data)

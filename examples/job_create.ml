@@ -24,7 +24,7 @@ let create_random_job bs =
   let r () =
     let rc () = Char.of_int_exn (Char.to_int 'b' + (Random.int 20))
     in List.init 5 ~f:(fun _ -> rc ()) |> String.of_char_list in
-  Beanstalk.Worker.put bs ~delay:0 ~priority:2 ~ttr:10 ~data:(r ())
+  Beanstalk.Worker.put bs ~data:(r ())
 
 let () = 
   bs >>> begin fun bs -> 
