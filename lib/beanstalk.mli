@@ -31,7 +31,7 @@ module Job : sig
   (* [data j return the raw payload of job [j] *)
 end
 
-(** A module to manipulat beanstalkd tubes *)
+(** A module to manipulate beanstalkd tubes *)
 module Tube : sig
   (** common operations *)
   val all : conn -> string list Deferred.t
