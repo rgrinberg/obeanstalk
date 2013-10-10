@@ -80,20 +80,34 @@ module Worker : sig
       putting the job in the read queue. Default is 0*)
 
   val bury : conn -> id:int -> priority:int -> unit Deferred.t
+  (** [bury conn ~id ~priority] buries job [id] and assigns it a new
+      [priority]*)
   val delete : conn -> id:int -> unit Deferred.t
+  (** [delete conn ~id] deletes job [id] *)
   val touch : conn -> id:int -> unit Deferred.t
+  (** [touch conn ~id] "touches" a job [id] I.e. asks the server
+      for more time to process it before it starts replying with Deadline_soon*)
 
   val release : conn -> id:int -> priority:int -> delay:int -> unit Deferred.t
-  (** peeks *)
-  val peek : conn -> id:int -> Job.t Deferred.t
-  val peek_ready : conn -> Job.t Deferred.t
-  val peek_delayed : conn -> Job.t Deferred.t
-  val peek_buried : conn -> Job.t Deferred.t
+  (** TODO *)
 
-  (** kicks *)
+  val peek : conn -> id:int -> Job.t Deferred.t
+  (** [peek conn ~id] Return the job [id] *)
+  val peek_ready : conn -> Job.t Deferred.t
+  (** [peek_ready conn] Return the next job in the ready queue*)
+  val peek_delayed : conn -> Job.t Deferred.t
+  (** [peek_delayed conn] Return the next job in the delayed queue *)
+  val peek_buried : conn -> Job.t Deferred.t
+  (** [peek_buried conn] Return the next job in the buried queue *)
+
   val kick_bound : conn -> bound:int -> [ `Kicked of int ] Deferred.t
-  val kick_job : conn -> id:int -> unit Deferred.t
+  (** [kick_bound conn ~bound] Kicks upto [bound] jobs into the ready
+      queue. Returns the number of jobs kicked. If there are no buried jobs 
+      to kick then it will kick delayed jobs*)
+  val kick : conn -> id:int -> unit Deferred.t
+  (** [kick conn ~id] Kicks the the job [id] *)
   val stats : conn -> id:int -> (string * string) list Deferred.t
+  (** [stats conn ~if] Returns statistics about job [id] *)
 end
 
 type error =
