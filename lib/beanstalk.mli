@@ -68,7 +68,13 @@ module Worker : sig
   resolves to `Timeout. Warning: [span] rounds down subsecond percision *)
 
   val put : conn -> ?delay:int ->
-    priority:int -> ttr:int -> data:string -> Job.t Deferred.t
+    ?priority:int -> ?ttr:int -> data:string -> Job.t Deferred.t
+  (** [put conn ?delay ~priority ~ttr ~data] Creates a job with payload
+  [data]. Smaller [priority] jobs will be scheduled before jobs with
+  larger priorities. [ttr] is the maximum time in seconds a worker
+  is allowed to reserve a job without deleting/releasing/burying it.
+  Default is 1 second. [delay] is the number of seconds to wait before
+  putting the job in the read queue. Default is 0*)
 
   val bury : conn -> id:int -> priority:int -> unit Deferred.t
   val delete : conn -> id:int -> unit Deferred.t

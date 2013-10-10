@@ -66,7 +66,7 @@ module Request = struct
 
   let use_tube ~tube = Single(Command.one_arg "use" tube)
 
-  let put ?(delay=0) ~priority ~ttr ~bytes ~job =
+  let put ?(delay=0) ?(priority=0) ?(ttr=1) ~bytes ~job =
     WithJob(Command.create_ints ~name:"put" 
         ~args:[priority;delay;ttr;bytes], job)
 

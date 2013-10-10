@@ -31,7 +31,7 @@ module Request : sig
 
   val use_tube : tube:string -> t
   val put :
-    ?delay:int -> priority:int -> ttr:int -> bytes:int -> job:string -> t
+    ?delay:int -> ?priority:int -> ?ttr:int -> bytes:int -> job:string -> t
   val reserve            : t
   val reserve_timeout    : timeout:int -> t
   val delete             : id:int -> t
