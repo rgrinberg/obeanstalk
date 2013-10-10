@@ -1,5 +1,5 @@
 version = "0.0.1"
-description = "Async beanstalkd client for OCaml"
+description = "Async beanstalk client for OCaml"
 archive(byte) = "beanstalk.cma"
 archive(byte, plugin) = "beanstalk.cma"
 archive(native) = "beanstalk.cmxa"

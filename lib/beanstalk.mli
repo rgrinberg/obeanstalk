@@ -1,10 +1,11 @@
-(** Async compatible client to the beanstalkd work queue *)
+(** Async compatible client to the beanstalk work queue. Constult the
+    beanstalk protocol docs for more thorough coverage of the protocol *)
 
 open Core.Std
 open Async.Std (* only dependency is Deferred.t *)
 
 type conn
-(** Beanstalkd connection *)
+(** beanstalk connection *)
 
 val connect : host:string -> port:int -> conn Deferred.t
 (** [connect ~host ~port] returns a Deferred that is resolved when the
@@ -18,20 +19,20 @@ val quit : conn -> unit Deferred.t
 (** [quit conn] Returns a deferred that is resolved when a connection is closed
 *)
 
-(** Representation of beanstalkd jobs *)
+(** Representation of beanstalk jobs *)
 module Job : sig
   type t = private {
     id : int;
     data : string;
   } with sexp
-  (** a representation of a beanstalkd job *)
+  (** a representation of a beanstalk job *)
   val id : t -> int
   (** [id j] return the id of job [j]*)
   val data : t -> string
   (* [data j return the raw payload of job [j] *)
 end
 
-(** A module to manipulate beanstalkd tubes *)
+(** A module to manipulate beanstalk tubes *)
 module Tube : sig
   val all : conn -> string list Deferred.t
   (** [all conn] returns the names of all tubes available *)
@@ -55,7 +56,7 @@ module Tube : sig
   (** [using conn] Returns the currently used tube *)
 end
 
-(** Job operations within beanstalkd *)
+(** Job operations within beanstalk *)
 module Worker : sig
   val reserve : conn -> Job.t Deferred.t
   (** [reserve conn] Determined when a job is leased from [conn].
@@ -64,7 +65,7 @@ module Worker : sig
 
   val reserve_now : conn -> [`Ok of Job.t | `Timed_out ] Deferred.t
   (** [reserve_now conn] is like reserve except that it will not block the
-      connection to the beanstalkd instance and will resolve immediately if
+      connection to the beanstalk instance and will resolve immediately if
       a job isn't available *)
 
   val reserve_timeout : 
@@ -116,15 +117,17 @@ end
 
 type error =
   | Out_of_memory
-  (** Raised when beanstalkd cannot allocate enough memory for the job*)
+  (** Raised when beanstalk cannot allocate enough memory for the job*)
   | Draining
   (** Raised when the server is no longer accepting new jobs *)
   | Buried of int option
-  (** XXX *)
+  (** Raised when the server runs out of memory releasing/putting a job
+      An id is provided on put to identify the job*)
   | Job_too_big
   (** Client has requested to put a job with a body larger than max-job-size bytes *)
   | Deadline_soon
-  (**  XXX *)
+  (** Client has reserved too many jobs without releasing/deleting them
+      and is not allowed to reserve more jobs.*)
   | Not_ignored 
   (** Client attempts to ignore only tube in its watch list *)
   | Beanstalk_not_found

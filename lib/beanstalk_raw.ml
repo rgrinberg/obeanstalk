@@ -3,7 +3,7 @@ open Async.Std
 module Prot = Beanstalk_cmd
 module Exc  = Beanstalk_exc
 
-(** This is the extremely primitive interface to beanstalkd instance it 
+(** This is the extremely primitive interface to eanstalkd instance it 
  *  almost nothing but sending and receiving commands and translating errors.
  *  Use the higher level interface that comes with this package instead
  * *)
@@ -17,7 +17,7 @@ end
 
 module Reader = struct
   include Reader
-  (** read line, throw exception if on beanstalkd error *)
+  (** read line, throw exception if on eanstalkd error *)
   let read_rn_with_exn t = 
     read_line t >>| function
     | `Ok res -> (Prot.raise_if_error res; res)

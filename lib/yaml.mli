@@ -1,4 +1,4 @@
-(** YAML parsing functions for parsing beanstalkd responses *)
+(** YAML parsing functions for parsing eanstalkd responses *)
 
 (** parse a dictionary. assume all values are strings *)
 val to_dict : string -> (string * string) list
