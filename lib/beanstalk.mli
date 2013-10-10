@@ -108,7 +108,7 @@ module Worker : sig
   val kick : conn -> id:int -> unit Deferred.t
   (** [kick conn ~id] Kicks the the job [id] *)
   val stats : conn -> id:int -> (string * string) list Deferred.t
-  (** [stats conn ~if] Returns statistics about job [id] *)
+  (** [stats conn ~id] Returns statistics about job [id] *)
 end
 
 type error =
