@@ -55,6 +55,9 @@ end
 (** Job operations within beanstalkd *)
 module Worker : sig
   val reserve : conn -> Job.t Deferred.t
+  (** [reserve conn] Determined when a job is leased from [conn].
+  [Beanstalk_error(Deadline_soon)] can be thrown is too many reserve
+  calls are made *)
 
   val reserve_now : conn -> [`Ok of Job.t | `Timed_out ] Deferred.t
   (** [reserve_now conn] is like reserve except that it will not block the
