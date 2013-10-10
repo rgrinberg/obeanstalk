@@ -8,11 +8,11 @@ type conn
 
 val connect : host:string -> port:int -> conn Deferred.t
 (** [connect ~host ~port] returns a Deferred that is resolved when the
-    connection * is opened*)
+connection is opened*)
 
 val default_connection : ?host:string -> ?port:int -> unit -> conn Deferred.t
 (** [default_connection ()] creates a connection with the default host and
- * port. Port 11300 and localhost*)
+ port. Port 11300 and localhost*)
 
 val quit : conn -> unit Deferred.t
 (** [quit conn] Returns a deferred that is resolved when a connection is closed
