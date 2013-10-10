@@ -16,9 +16,6 @@ build:
 	$(OCAMLBUILD) $(TARGETS)
 	make tags
 
-job_create:
-	./job_create.native
-
 tags:
 	otags -I ~/.opam/4.01.0/lib/type_conv/ -I ~/.opam/4.01.0/lib/sexplib -pa pa_type_conv.cma -pa pa_sexp_conv.cma ./lib ./lib_test -r -vi
 
