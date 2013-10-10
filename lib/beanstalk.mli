@@ -52,7 +52,7 @@ module Tube : sig
   (** [use conn ~tube] Subsequent [Worker.put] commands will put jobs
       into [tube] *)
   val using : conn -> [ `Tube of string ] Deferred.t
-  (** [using conn] Returns the currently uses tube *)
+  (** [using conn] Returns the currently used tube *)
 end
 
 (** Job operations within beanstalkd *)
