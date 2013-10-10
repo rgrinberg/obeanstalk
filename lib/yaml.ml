@@ -15,8 +15,7 @@ let to_dict s =
   | _::lines -> (* I assume first line is the header *)
     lines |> List.filter_map ~f:(fun l -> 
       try let (k,v) = split_exn ~on:':' l in Some (k, String.strip v)
-      (* TODO : fix this "inelegant" error handling *)
-      with _ -> (Printf.printf "Could not parse '%s'\n" l; None))
+      with Not_found -> None)
 
 let to_list s = 
   match String.split_lines s with
