@@ -1,13 +1,14 @@
-* Deadline soon not being handled correctly. or is it?
+# Obeanstalk
 
-* add a debug mode where the raw interaction with the server is logged
-* more docs
-* finish obean?
-* add transparent pooling?
+Obeanstalk is an Async client for the beanstalk work queue.
 
-* tests for:
-* deadline soon
-* timeout
-* releasing jobs
-* burying jobs
-* deleting jobs
+## Documentation - Coming "soon":
+
+In all seriousness though `make doc` will create standard ocamldoc
+documentation. There should be enough stuff in `examples/` and `lib_test/` to
+get started. The module should be completely straightforward if you've ever
+worked with beanstalk before. In the meantime, checkout `lib/beanstalk.mli`.
+
+## Wishlist
+* Lwt Support
+* "debug mode" to log all interaction with a beanstalkd instance
