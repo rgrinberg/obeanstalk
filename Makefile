@@ -9,15 +9,26 @@ INSTALL = $(addprefix _build/lib/, $(INSTALL_TARGETS))
 TARGETS = lib/obean.native lib_test/test_pure.native lib_test/test_obs.native \
 		  examples/job_create.native examples/deadline_soon.native
 
-default: all
+default: dev
+
+dev:
+	make build
+	make tags
 
 build:
 	$(OCAMLBUILD) $(INSTALL_TARGETS)
 	$(OCAMLBUILD) $(TARGETS)
-	make tags
 
 tags:
 	otags -I ~/.opam/4.01.0/lib/type_conv/ -I ~/.opam/4.01.0/lib/sexplib -pa pa_type_conv.cma -pa pa_sexp_conv.cma ./lib ./lib_test -r -vi
+
+opam-install:
+	make clean
+	make build
+	make install
+
+opam-remove:
+	make uninstall
 
 all:
 	make build
@@ -42,4 +53,4 @@ uninstall:
 ncat:
 	rlwrap ncat -C 0.0.0.0 11300
 	
-.PHONY: build all build default install uninstall tags
+.PHONY: build all build default install uninstall tags dev opam-install opam-remove
