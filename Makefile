@@ -1,5 +1,5 @@
 NAME = obeanstalk
-OCAMLBUILD = ocamlbuild -use-ocamlfind
+OCAMLBUILD = ocamlbuild -use-ocamlfind -package threads -lflags -thread
 
 INSTALL_TARGETS = beanstalk.cma beanstalk.cmxa beanstalk.cmi beanstalk.a \
 				  beanstalk.mli
