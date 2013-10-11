@@ -4,9 +4,9 @@ module Prot = Beanstalk_cmd
 module Exc  = Beanstalk_exc
 
 (** This is the extremely primitive interface to eanstalkd instance it 
- *  almost nothing but sending and receiving commands and translating errors.
- *  Use the higher level interface that comes with this package instead
- * *)
+    almost nothing but sending and receiving commands and translating errors.
+    Use the higher level interface that comes with this package instead
+*)
 
 module Writer = struct
   include Writer
@@ -36,8 +36,8 @@ module Reader = struct
     let len = len + 2 in
     let buf = String.create len in
     really_read r ~len buf >>| function
-      | `Ok -> `Ok (Prot.unwrap buf)
-      | `Eof x -> `Eof x
+    | `Ok -> `Ok (Prot.unwrap buf)
+    | `Eof x -> `Eof x
 end
 
 module Conn = struct
@@ -46,7 +46,6 @@ module Conn = struct
     writer : Writer.t;
     throttle : unit Throttle.Sequencer.t
   }
-
   let create ~reader ~writer = { 
     reader; writer;
     throttle=(Throttle.Sequencer.create ~continue_on_error:true ());
@@ -113,9 +112,9 @@ let process cn ~req ~rep =
 let process_k cn ~req ~rep ~k = process cn ~req ~rep >>| k 
 
 open Prot.Payload
-(* a little ugly since we don't parse jobs. but that function is set
-  * by the user and it seems a little clumsy to pass it around when it
-  * can just be applied to the result just as conveniently *)
+(* a little ugly since we don't parse jobs. but that function is set by the
+ * user and it seems a little clumsy to pass it around when it can just be
+ * applied to the result just as conveniently *)
 let parse_response : type a . a Prot.Payload.t -> a = function
   | YList x -> Yaml.to_list x
   | YDict x -> Yaml.to_dict x
