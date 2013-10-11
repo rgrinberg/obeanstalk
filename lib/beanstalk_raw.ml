@@ -101,7 +101,7 @@ let recv_payload {reader=r;_} (`WithPayload cmd_reader) =
   let size = Prot.Command.size cmd in 
   Reader.read_buffer_drop_rn r ~len:size >>= function
   | `Ok buf -> return (cmd_reader cmd buf)
-  | `Eof _ -> assert false (* TODO *)
+  | `Eof _ -> raise (Exc.Unexpected_response "recv_paylod: missing \\r\\n")
 
 let process cn ~req ~rep = 
   Conn.enqueue cn ~f:(fun _ _ ->
