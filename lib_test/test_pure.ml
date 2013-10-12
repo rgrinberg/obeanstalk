@@ -1,4 +1,4 @@
-open OUnit
+open OUnit2
 open Core.Std
 open Beanstalk_cmd
 
@@ -51,22 +51,22 @@ let sample_yaml3 = "---
 
 let id x = x
 
-let test_split () =
+let test_split ctxt =
   let (k,v) = Yaml.split_exn "test: 123" ~on:':' in
   assert_equal k "test" ~printer:id;
   assert_equal v " 123" ~printer:id
 
-let test_yaml_dict () = 
+let test_yaml_dict ctxt =
   let yaml = Yaml.to_dict sample_yaml in
   assert_bool "more than 10" ((List.length yaml) > 10);
   assert_equal (List.Assoc.find_exn yaml "pid") "13297";
   assert_equal (List.Assoc.find_exn yaml "cmd-pause-tube") "0"
 
-let test_yaml_list () = 
+let test_yaml_list ctxt =
   let yaml = Yaml.to_list sample_yaml2 in
   assert_equal (List.hd_exn yaml) "default" ~printer:id
 
-let test_list_bug () = 
+let test_list_bug ctxt =
   let yaml = Yaml.to_list sample_yaml2 in
   assert_equal (List.hd_exn yaml) "default" ~printer:id
 
@@ -79,4 +79,4 @@ let test_fixtures =
       "sample list bug" >:: test_list_bug;
     ]
 
-let _ = run_test_tt ~verbose:true test_fixtures
+let _ = run_test_tt_main test_fixtures
