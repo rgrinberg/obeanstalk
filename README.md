@@ -19,11 +19,19 @@ module B = Beanstalk
 let bs = B.connect ~port:111300 ~host:"0.0.0.0"
 
 let rec loop bs =
-  B.Worker.reserve bs >>= (fun job ->
-  let id = B.Job.id job in
-  printf "Leased job: %d\n" id;
-  B.Worker.delete bs ~id) >>= fun () ->
-  loop bs
+  Monitor.try_with begin fun () ->
+    B.Worker.reserve bs >>= (fun job ->
+        let id = B.Job.id job in
+        printf "Leased job: %d\n" id;
+        B.Worker.delete bs ~id) >>= fun () ->
+    loop bs
+  end >>| function
+  | Ok _ -> assert false (* infinite loop *)
+  | Error (B.Beanstalk_error s) ->
+      let error = s |> B.sexp_of_error |> Sexp.to_string_hum in
+      printf "failed because: %s\n" error
+  | Error _ -> shutdown (-1)
+
 
 let _ = bs >>= loop
 
