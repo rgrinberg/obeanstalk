@@ -9,7 +9,7 @@ documentation. There should be enough stuff in `examples/` and `lib_test/` to
 get started. The module should be completely straightforward if you've ever
 worked with beanstalk before. In the meantime, checkout `lib/beanstalk.mli`.
 
-## Exmaple
+## Example
 Leasing jobs off a tube
 ```
 open Core.Std
@@ -30,7 +30,7 @@ let rec loop bs =
   | Error (B.Beanstalk_error s) ->
       let error = s |> B.sexp_of_error |> Sexp.to_string_hum in
       printf "failed because: %s\n" error
-  | Error _ -> shutdown (-1)
+  | Error _ -> shutdown (-1) (* don't care about other errors *)
 
 
 let _ = bs >>= loop
