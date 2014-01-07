@@ -52,5 +52,5 @@ uninstall:
 
 ncat:
 	rlwrap ncat -C 0.0.0.0 11300
-	
+
 .PHONY: build all build default install uninstall tags dev opam-install opam-remove
