@@ -1,11 +1,11 @@
 open Core.Std
 
-exception Timed_out with sexp
-exception Expected_crlf with sexp
-exception Bad_format with sexp
-exception Internal_error with sexp
-exception Unexpected_response of string with sexp
-exception Unknown_command with sexp
+exception Timed_out [@@deriving sexp]
+exception Expected_crlf [@@deriving sexp]
+exception Bad_format [@@deriving sexp]
+exception Internal_error [@@deriving sexp]
+exception Unexpected_response of string [@@deriving sexp]
+exception Unknown_command [@@deriving sexp]
 
 
 type error =
@@ -16,8 +16,8 @@ type error =
   | Deadline_soon
   | Not_ignored 
   | Beanstalk_not_found
-  with sexp
+  [@@deriving sexp]
 
-exception Beanstalk_error of error with sexp
+exception Beanstalk_error of error [@@deriving sexp]
 
 let raise_b e = raise (Beanstalk_error e) 
