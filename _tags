@@ -1,4 +1,4 @@
-true: syntax(camlp4o)
-true: package(core,sexplib,sexplib.syntax,async,async_unix)
-true: thread,debug
+true: package(core,sexplib,ppx_sexp_conv,async,async_unix)
+true: thread,debug,annot
+<lib_test/*>: package(oUnit)
 <lib> or <lib_test> : include
