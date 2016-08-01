@@ -21,7 +21,7 @@ let print_stats conn ~tube =
   end
 
 let tube =
-  Command.async_basic ~summary:"Inspect tubes"
+  Command.async ~summary:"Inspect tubes"
     Command.Spec.(
       empty
       +> flag "-s" (optional_with_default "default" string)
