@@ -19,9 +19,6 @@ build:
 	$(OCAMLBUILD) $(INSTALL_TARGETS)
 	$(OCAMLBUILD) $(TARGETS)
 
-tags:
-	otags -I ~/.opam/4.01.0/lib/type_conv/ -I ~/.opam/4.01.0/lib/sexplib -pa pa_type_conv.cma -pa pa_sexp_conv.cma ./lib ./lib_test -r
-
 opam-install:
 	make clean
 	make build
