@@ -9,7 +9,7 @@ module Job = struct
   type t = {
     id : int;
     data : string;
-  } with sexp
+  } [@@deriving sexp]
   let id {id;_} = id
   let data {data;_} = data
   let create ~data ~id = {data ; id}

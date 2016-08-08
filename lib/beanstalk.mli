@@ -24,7 +24,7 @@ module Job : sig
   type t = private {
     id : int;
     data : string;
-  } with sexp
+  } [@@deriving sexp]
   (** a representation of a beanstalk job *)
   val id : t -> int
   (** [id j] return the id of job [j]*)
@@ -132,6 +132,6 @@ type error =
   (** Client attempts to ignore only tube in its watch list *)
   | Beanstalk_not_found
   (** Requested job/tube is not found *)
-with sexp
+[@@deriving sexp]
 
-exception Beanstalk_error of error with sexp
+exception Beanstalk_error of error [@@deriving sexp]

@@ -1,0 +1,17 @@
+opam-version: "1.2"
+maintainer: "rudi.grinberg@gmail.com"
+authors: ["Rudi Grinberg"]
+remove: [["ocamlfind" "remove" "obeanstalk"]]
+dev-repo: "git://github.com/rgrinberg/obeanstalk"
+bug-reports: "https://github.com/rgrinberg/obeanstalk/issues"
+homepage: "https://github.com/rgrinberg/obeanstalk"
+depends: [
+  "core" {>= "113.09.00"}
+  "async" {>= "113.09.00"}
+  "sexplib" {< "113.09.00"}
+  "ppx_tools"
+  "ocamlbuild" {build}
+  "ocamlfind" {build}
+  "ounit" {>="2.0.0"}
+]
+install: [make "opam-install"]

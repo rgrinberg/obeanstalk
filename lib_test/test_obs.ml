@@ -6,7 +6,7 @@ open Async_unix.Async_print
 open Beanstalk_raw
 let (host, port) = ("127.0.0.1", 11300)
 
-let pf = Printf.printf
+let pf = Core.Std.Printf.printf
 
 let verify_beanstalkd_on ~host ~port = 
   let failure () = 

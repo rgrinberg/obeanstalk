@@ -13,7 +13,7 @@ module Command : sig
   type t = { 
     name : string; 
     args : string list; 
-  } with sexp
+  } [@@deriving sexp]
 
   val create      : name:string -> args:string list -> t
   val create_ints : name:string -> args:int list -> t

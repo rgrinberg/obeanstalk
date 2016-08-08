@@ -38,7 +38,7 @@ module Command = struct
   type t = {
     name : string;
     args : string list; 
-  } with sexp
+  } [@@deriving sexp]
 
   let create ~name ~args = {name;args}
 
